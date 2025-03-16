@@ -1,4 +1,3 @@
-
 from .imports import *
 
 from typing import TYPE_CHECKING
@@ -25,8 +24,8 @@ class PokemonHouse(Map):
         super().__init__(
             name="Pokemon House",
             description="Welcome",
-            size=(15, 15),
-            entry_point=Coord(14, 7),
+            size=(30, 30),
+            entry_point=Coord(28, 28),
             background_tile_image='grass',
         )
     
@@ -35,10 +34,10 @@ class PokemonHouse(Map):
 
         # add a door
         door = Door('int_entrance', linked_room="Trottier Town")
-        objects.append((door, Coord(14, 7)))
+        objects.append((door, Coord(28, 28)))
 
         # add a pressure plate
         pressure_plate = ScorePressurePlate()
-        objects.append((pressure_plate, Coord(13, 7)))
+        objects.append((pressure_plate, Coord(15, 15)))
 
         return objects
