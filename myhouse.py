@@ -27,6 +27,7 @@ class PokemonHouse(Map):
             background_tile_image='grass',
         )
     
+    
     def add_ext_decor(self, objects, start_pos, end_pos, step=2, decor_type="tree_large_1", direction="horizontal"):
         """Helper method to add exterior decorations in a line
         
@@ -192,7 +193,7 @@ class PokemonHouse(Map):
         # Top row
         self.add_ext_decor(objects, (0, 2), (0, self._map_cols - 2))
         
-        # Create horizontal sand paths
+        # Create starting path
         for path_y in [26, 27]:
             end_x = 22 if path_y == 26 else 28
             self.add_background(objects, (path_y, 0), (path_y, end_x))
@@ -203,6 +204,14 @@ class PokemonHouse(Map):
         
         # Create vertical sand path
         self.add_background(objects, (10, 2), (25, 2), direction="vertical")
+
+        # Create Professor Oak at position (26, 6)
+        prof = Professor(
+            encounter_text="Welcome to the Kanto region! I'm Professor Oak.\nYour very own Pokémon adventure is about to unfold!",
+            staring_distance=0,  # No automatic interaction, player must initiate
+            facing_direction='down'
+        )
+        objects.append((prof, Coord(25, 21)))
         
         # Add rock path along the top of the bush area (horizontal)
         self.add_ext_decor(objects, (16, 3), (16, 11), step=1, decor_type="rock_1")
