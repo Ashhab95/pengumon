@@ -153,8 +153,9 @@ class PokemonHouse(Map):
         door = Door('tube', linked_room="Trottier Town")
         objects.append((door, Coord(26, 25)))
         
-        pressure_plate = ScorePressurePlate()
-        objects.append((pressure_plate, Coord(26, 22)))
+        # pressure_plate = ScorePressurePlate()
+        fight_pressure_plate = FightPressurePlate("Test")
+        objects.append((fight_pressure_plate, Coord(26, 22)))
         
         # Create a border of trees
         # Bottom row
