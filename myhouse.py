@@ -208,7 +208,7 @@ class PokemonHouse(Map):
         # Create Professor Oak at position (26, 6)
         prof = Professor(
             encounter_text="Welcome to the Kanto region! I'm Professor Oak.\nYour very own Pokémon adventure is about to unfold!",
-            staring_distance=0,  # No automatic interaction, player must initiate
+            staring_distance=0,  
             facing_direction='down'
         )
         objects.append((prof, Coord(25, 21)))
