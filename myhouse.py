@@ -27,15 +27,16 @@ class PokemonHouse(Map):
             background_tile_image='grass',
         )
     
-    def _add_trees(self, objects, start_pos, end_pos, step=2, tree_type="tree_large_1", direction="horizontal"):
-        """Helper method to add trees in a line
+    
+    def add_ext_decor(self, objects, start_pos, end_pos, step=2, decor_type="tree_large_1", direction="horizontal"):
+        """Helper method to add exterior decorations in a line
         
         Args:
             objects: List to append objects to
             start_pos: Starting coordinate (i, j)
             end_pos: Ending coordinate (i, j)
-            step: Spacing between trees
-            tree_type: Type of tree to place
+            step: Spacing between decorations
+            decor_type: Type of decoration to place
             direction: "horizontal" or "vertical"
         """
         i_start, j_start = start_pos
@@ -44,15 +45,38 @@ class PokemonHouse(Map):
         if direction == "horizontal":
             for j in range(j_start, j_end, step):
                 if 0 <= i_start < self._map_rows-1 and 0 <= j < self._map_cols-1:
-                    tree = ExtDecor(tree_type)
-                    objects.append((tree, Coord(i_start, j)))
+                    decor = ExtDecor(decor_type)
+                    objects.append((decor, Coord(i_start, j)))
         else:  # vertical
             for i in range(i_start, i_end, step):
                 if 0 <= i < self._map_rows-1 and 0 <= j_start < self._map_cols-1:
-                    tree = ExtDecor(tree_type)
-                    objects.append((tree, Coord(i, j_start)))
+                    decor = ExtDecor(decor_type)
+                    objects.append((decor, Coord(i, j_start)))
+            """Helper method to add trees in a line
+            
+            Args:
+                objects: List to append objects to
+                start_pos: Starting coordinate (i, j)
+                end_pos: Ending coordinate (i, j)
+                step: Spacing between trees
+                tree_type: Type of tree to place
+                direction: "horizontal" or "vertical"
+            """
+            i_start, j_start = start_pos
+            i_end, j_end = end_pos
+            
+            if direction == "horizontal":
+                for j in range(j_start, j_end, step):
+                    if 0 <= i_start < self._map_rows-1 and 0 <= j < self._map_cols-1:
+                        tree = ExtDecor(decor_type)
+                        objects.append((tree, Coord(i_start, j)))
+            else:  # vertical
+                for i in range(i_start, i_end, step):
+                    if 0 <= i < self._map_rows-1 and 0 <= j_start < self._map_cols-1:
+                        tree = ExtDecor(decor_type)
+                        objects.append((tree, Coord(i, j_start)))
     
-    def _add_background(self, objects, start_pos, end_pos, bg_type="sand", direction="horizontal", radius=None, center=None):
+    def add_background(self, objects, start_pos, end_pos, bg_type="sand", direction="horizontal", radius=None, center=None):
         i_start, j_start = start_pos
         
         if direction == "horizontal":
@@ -93,7 +117,7 @@ class PokemonHouse(Map):
                     if 0 <= i < self._map_rows and 0 <= j < self._map_cols:
                         objects.append((Background(bg_type), Coord(i, j)))
     
-    def _add_area(self, objects, start_pos, end_pos, obj_type_func, passable=False):
+    def add_area(self, objects, start_pos, end_pos, obj_type_func, passable=False):
 
         """Helper method to add objects in a rectangular area
         
@@ -115,7 +139,7 @@ class PokemonHouse(Map):
                         obj._MapObject__passable = True
                     objects.append((obj, Coord(i, j)))
     
-    def _add_bushes_with_plates(self, objects, start_pos, end_pos, plate_probability=0.8):
+    def add_bushes_with_plates(self, objects, start_pos, end_pos, plate_probability=0.8):
         """Add an area of bushes with random pressure plates underneath
         
         Args:
@@ -159,30 +183,44 @@ class PokemonHouse(Map):
         
         # Create a border of trees
         # Bottom row
-        self._add_trees(objects, (self._map_rows - 3, 2), (self._map_rows - 3, self._map_cols - 1))
+        self.add_ext_decor(objects, (self._map_rows - 3, 2), (self._map_rows - 3, self._map_cols - 1))
         
         # Left column
-        self._add_trees(objects, (1, 0), (self._map_rows - 1, 0), direction="vertical")
+        self.add_ext_decor(objects, (1, 0), (self._map_rows - 1, 0), direction="vertical")
         
         # Right column
-        self._add_trees(objects, (1, 28), (self._map_rows - 1, 28), direction="vertical")
+        self.add_ext_decor(objects, (1, 28), (self._map_rows - 1, 28), direction="vertical")
         
         # Top row
-        self._add_trees(objects, (0, 2), (0, self._map_cols - 2))
+        self.add_ext_decor(objects, (0, 2), (0, self._map_cols - 2))
         
-        # Create horizontal sand paths
+        # Create starting path
         for path_y in [26, 27]:
             end_x = 22 if path_y == 26 else 28
-            self._add_background(objects, (path_y, 0), (path_y, end_x))
+            self.add_background(objects, (path_y, 0), (path_y, end_x))
         
         # Add tree rows above paths
         for tree_row in [21, 22, 23]:
-            self._add_trees(objects, (tree_row, 3), (tree_row, 26))
+            self.add_ext_decor(objects, (tree_row, 3), (tree_row, 26))
         
         # Create vertical sand path
-        self._add_background(objects, (10, 2), (25, 2), direction="vertical")
+        self.add_background(objects, (10, 2), (25, 2), direction="vertical")
+
+        # Create Professor Oak at position (26, 6)
+        prof = Professor(
+            encounter_text="Welcome to the Kanto region! I'm Professor Oak.\nYour very own Pokémon adventure is about to unfold!",
+            staring_distance=0,  
+            facing_direction='down'
+        )
+        objects.append((prof, Coord(25, 21)))
+        
+        # Add rock path along the top of the bush area (horizontal)
+        self.add_ext_decor(objects, (16, 3), (16, 11), step=1, decor_type="rock_1")
+        
+        # Add rock path along the right of the bush area (vertical)
+        self.add_ext_decor(objects, (16, 11), (21, 11), step=1, decor_type="rock_1", direction="vertical")
         
         # Adding bushes and pressure plates 
-        self._add_bushes_with_plates(objects, (17, 3), (20, 10), plate_probability=0.5)
+        self.add_bushes_with_plates(objects, (17, 3), (20, 10), plate_probability=0.5)
         
         return objects
