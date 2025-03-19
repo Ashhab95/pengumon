@@ -116,7 +116,7 @@ class PokeEvolve2(PokemonDecorator):
         self.known_attacks = decorated_data['attacks']
     
     def is_fainted(self):
-        return self.current_health <= 0
+        return self.current_health <= 0  #tried to delegate it to the base pokemon but not sure 
     
     def take_damage(self, damage):
         self.current_health -= damage
