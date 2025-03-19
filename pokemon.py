@@ -129,7 +129,8 @@ class PokeEvolve2(PokemonDecorator):
 
         attack = self.known_attacks[attack_index]
         base_damage = attack["damage"]
-
+        
+        multiplier = 1.0
         if self.p_type == PokemonType.FIRE and target.p_type == PokemonType.GRASS:
             multiplier = 1.75
         elif self.p_type == PokemonType.WATER and target.p_type == PokemonType.FIRE:
@@ -207,6 +208,7 @@ class PokeEvolve3(PokemonDecorator):
         attack = self.known_attacks[attack_index]
         base_damage = attack["damage"]
 
+        multiplier = 1.0
         if self.p_type == PokemonType.FIRE and target.p_type == PokemonType.GRASS:
             multiplier = 2.0
         elif self.p_type == PokemonType.WATER and target.p_type == PokemonType.FIRE:
