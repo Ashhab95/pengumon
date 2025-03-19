@@ -1,5 +1,5 @@
 # Pokemon.py
-from .pokedex import pokedex, PokemonType
+from pokedex import pokedex, PokemonType
 
 # Abstract Component interface
 class BasePokemon:
@@ -46,7 +46,7 @@ class Pokemon(BasePokemon):
         attack = self.known_attacks[attack_index]
         base_damage = attack["damage"]
 
-    
+        multiplier = 1.0
         if self.p_type == PokemonType.FIRE and target.p_type == PokemonType.GRASS:
             multiplier = 1.4
         elif self.p_type == PokemonType.WATER and target.p_type == PokemonType.FIRE:
