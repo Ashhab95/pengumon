@@ -1,20 +1,29 @@
-# simple_battle.py
+# battle_with_healing.py
 import random
 from .pokemon import Pokemon
+from .items import PotionFlyweightFactory
 
 def battle_loop(player_pokemon, wild_pokemon):
     """
-    Simple battle loop between player's Pokemon and a wild Pokemon
+    Battle loop between player's Pokemon and a wild Pokemon, with healing options
     
     Args:
         player_pokemon: Player's Pokemon instance
         wild_pokemon: Wild Pokemon instance
         
     Returns:
-        True if player won, False if player lost
+        True if player won
+        False if player lost
+        None if player ran away
     """
     print(f"\nA wild {wild_pokemon.name} appeared!")
     print(f"Go, {player_pokemon.name}!")
+    
+    # Get potions using the flyweight factory
+    player_potion = PotionFlyweightFactory.get_medium_potion()
+    ai_potion = PotionFlyweightFactory.get_small_potion()
+    player_has_potion = True
+    ai_has_potion = True
     
     turn = 0  # 0 for player's turn, 1 for wild Pokemon's turn
     
@@ -26,23 +35,45 @@ def battle_loop(player_pokemon, wild_pokemon):
         print("="*40)
         
         if turn == 0:  # Player's turn
+            # Print menu options based on available actions
             print("\nYour turn!")
-            print("Choose an attack:")
+            print("Choose an action:")
             for i, attack in enumerate(player_pokemon.known_attacks):
                 print(f"{i+1}. {attack['name']} (Damage: {attack['damage']})")
-            print("5. Run away")
             
-            choice = input("Enter your choice (1-5): ")
+            # Add healing option if potion is available
+            heal_option_num = len(player_pokemon.known_attacks) + 1
+            run_option_num = len(player_pokemon.known_attacks) + (2 if player_has_potion else 1)
             
-            if choice == "5":
+            if player_has_potion:
+                print(f"{heal_option_num}. Use {player_potion.get_name()} (Heals {player_potion.get_value()} HP)")
+                
+            # Always add run away option as the last option
+            print(f"{run_option_num}. Run away")
+            
+            # Prompt with the correct range
+            max_choice = run_option_num
+            choice = input(f"Enter your choice (1-{max_choice}): ")
+            
+            # Handle running away
+            if int(choice) == run_option_num:
                 # Try to run away (70% chance)
                 if random.random() < 0.7:
                     print("You successfully ran away!")
-                    return False  # Neither win nor loss
+                    return None  # Player ran away - distinct from losing
                 else:
                     print("You couldn't escape!")
                     turn = 1  # Wild Pokemon's turn
                     continue
+            
+            # Handle healing
+            if player_has_potion and int(choice) == heal_option_num:
+                result = player_potion.use(player_pokemon)
+                print(result["message"])
+                print(f"Your {player_pokemon.name} now has {player_pokemon.current_health}/{player_pokemon.max_health} HP.")
+                player_has_potion = False
+                turn = 1  # Wild Pokemon's turn
+                continue
             
             try:
                 attack_index = int(choice) - 1
@@ -75,23 +106,35 @@ def battle_loop(player_pokemon, wild_pokemon):
         else:  # Wild Pokemon's turn
             print(f"\nWild {wild_pokemon.name}'s turn!")
             
-            # Wild Pokemon randomly selects an attack
-            attack_index = random.randint(0, len(wild_pokemon.known_attacks) - 1)
+            # AI logic for healing:
+            # Heal if health is below 30% and has potion
+            should_heal = (wild_pokemon.current_health < wild_pokemon.max_health * 0.3) and ai_has_potion
             
-            # Perform attack
-            result = wild_pokemon.attack(attack_index, player_pokemon)
-            print(result["message"])
-            print(f"Took {result['damage']} damage!")
-            
-            if player_pokemon.is_fainted():
-                print(f"Your {player_pokemon.name} fainted!")
-                return False  # Player lost
+            if should_heal:
+                result = ai_potion.use(wild_pokemon)
+                print(f"Wild {wild_pokemon.name} used a potion!")
+                print(f"Wild {wild_pokemon.name} restored {result['amount_healed']} HP!")
+                print(f"Wild {wild_pokemon.name} now has {wild_pokemon.current_health}/{wild_pokemon.max_health} HP.")
+                ai_has_potion = False
+                
+            else:
+                # Wild Pokemon attacks
+                attack_index = random.randint(0, len(wild_pokemon.known_attacks) - 1)
+                
+                # Perform attack
+                result = wild_pokemon.attack(attack_index, player_pokemon)
+                print(result["message"])
+                print(f"You took {result['damage']} damage!")
+                
+                if player_pokemon.is_fainted():
+                    print(f"Your {player_pokemon.name} fainted!")
+                    return False  # Player lost
             
             turn = 0  # Player's turn
 
 def main():
     # Create player's Pokemon
-    print("Welcome to Pokemon Battle Simulator!")
+    print("Welcome to Pokemon Battle Simulator with Healing!")
     print("Choose your starter Pokemon:")
     print("1. Charmander (Fire)")
     print("2. Squirtle (Water)")
@@ -116,6 +159,9 @@ def main():
     # Game loop
     battling = True
     battle_count = 0
+    wins = 0
+    losses = 0
+    escapes = 0
     
     while battling:
         # Generate random wild Pokemon
@@ -126,8 +172,9 @@ def main():
         result = battle_loop(player_pokemon, wild_pokemon)
         battle_count += 1
         
-        if result:  # Player won
+        if result is True:  # Player won
             print("\nYou won the battle!")
+            wins += 1
             
             # Check if player's Pokemon evolved and update
             if hasattr(player_pokemon, "base") and player_pokemon.base != player_pokemon:
@@ -137,11 +184,19 @@ def main():
             heal_amount = player_pokemon.max_health // 4
             player_pokemon.current_health = min(player_pokemon.current_health + heal_amount, player_pokemon.max_health)
             print(f"Your {player_pokemon.name} recovered some HP! ({player_pokemon.current_health}/{player_pokemon.max_health})")
-        else:
+        elif result is False:  # Player lost
             print("\nYou lost the battle!")
+            losses += 1
             # Partially heal Pokemon after a loss
             player_pokemon.current_health = player_pokemon.max_health // 2
             print(f"Your {player_pokemon.name} was healed at a Pokemon Center! ({player_pokemon.current_health}/{player_pokemon.max_health})")
+        elif result is None:  # Player ran away
+            print("\nYou escaped from the battle.")
+            escapes += 1
+            # Minor recovery after running
+            heal_amount = player_pokemon.max_health // 10
+            player_pokemon.current_health = min(player_pokemon.current_health + heal_amount, player_pokemon.max_health)
+            print(f"Your {player_pokemon.name} caught its breath. ({player_pokemon.current_health}/{player_pokemon.max_health})")
         
         if battle_count >= 3:
             print(f"\nYour {player_pokemon.name}'s stats:")
@@ -157,6 +212,12 @@ def main():
             battling = False
     
     print("Thanks for playing!")
+    print("\n----- BATTLE SUMMARY -----")
+    print(f"Total battles: {battle_count}")
+    print(f"Wins: {wins}")
+    print(f"Losses: {losses}")
+    print(f"Escapes: {escapes}")
+    print(f"Final Pokemon: {player_pokemon.name} (Level {player_pokemon.level})")
 
 if __name__ == "__main__":
     main()

@@ -9,7 +9,7 @@ class PokemonType(Enum):
 pokedex = {
     "Charmander": {
         "name": "Charmander",
-        "max_health": 40,
+        "max_health": 50,
         "type": PokemonType.FIRE,
         "level": 1,
         "xp": 0,
@@ -22,7 +22,7 @@ pokedex = {
     },
     "Squirtle": {
         "name": "Squirtle",
-        "max_health": 40,
+        "max_health": 50,
         "type": PokemonType.WATER,
         "level": 1,
         "xp": 0,
@@ -35,7 +35,7 @@ pokedex = {
     },
     "Bulbasaur": {
         "name": "Bulbasaur",
-        "max_health": 40,
+        "max_health": 50,
         "type": PokemonType.GRASS,
         "level": 1,
         "xp": 0,
