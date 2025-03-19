@@ -141,8 +141,8 @@ class PokemonHouse(Map):
         # Randomly add pressure plates
         for i, j in bush_positions:
             if random.random() < plate_probability:
-                pressure_plate = ScorePressurePlate()  #this needs to be changed to invoke our battle ui 
-                objects.append((pressure_plate, Coord(i, j)))
+                fight_pressure_plate = FightPressurePlate("Test")
+                objects.append((fight_pressure_plate, Coord(i,j)))
     
     
     
