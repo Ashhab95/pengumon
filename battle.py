@@ -1,6 +1,6 @@
 # simple_battle.py
 import random
-from pokemon import Pokemon
+from .pokemon import Pokemon
 
 def battle_loop(player_pokemon, wild_pokemon):
     """

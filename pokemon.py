@@ -1,5 +1,5 @@
 # Pokemon.py
-from pokedex import pokedex, PokemonType
+from .pokedex import pokedex, PokemonType
 
 # Abstract Component interface
 class BasePokemon:
