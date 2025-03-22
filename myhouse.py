@@ -147,7 +147,6 @@ class PokemonHouse(Map):
                 objects.append((fight_pressure_plate, Coord(i,j)))
     
     
-    
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
         
@@ -158,6 +157,10 @@ class PokemonHouse(Map):
         # pressure_plate = ScorePressurePlate()
         fight_pressure_plate = FightPressurePlate("Test")
         objects.append((fight_pressure_plate, Coord(26, 22)))
+        
+        # pressure_plate = ScorePressurePlate()
+        choose_pokemon_plate = ChoosePokemonPlate("Test")
+        objects.append((choose_pokemon_plate, Coord(25, 22)))
         
         # Create a border of trees
         # Bottom row
@@ -172,6 +175,9 @@ class PokemonHouse(Map):
         # Top row
         self._add_trees(objects, (0, 2), (0, self._map_cols - 2))
         
+        
+        # This code only clutters the map and will be removed for the duration of testing
+        """
         # Create horizontal sand paths
         for path_y in [26, 27]:
             end_x = 22 if path_y == 26 else 28
@@ -186,5 +192,6 @@ class PokemonHouse(Map):
         
         # Adding bushes and pressure plates 
         self._add_bushes_with_plates(objects, (17, 3), (20, 10), plate_probability=0.5)
+        """
         
         return objects
