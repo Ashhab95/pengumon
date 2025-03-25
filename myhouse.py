@@ -6,16 +6,61 @@ if TYPE_CHECKING:
     from maps.base import Map
     from tiles.base import MapObject
     from tiles.map_objects import *
-
-class ScorePressurePlate(PressurePlate):
-    def __init__(self, image_name='pressure_plate'):
-        super().__init__(image_name)
     
+from .PokemonTrainer import PokemonTrainer
+    
+ # Map objects we added ourselves
+ # --------------------------------
+class FightPressurePlate(PressurePlate):
+    def __init__(self):
+        super().__init__(image_name = "bush", stepping_text='You encountered a wild Charizard!') 
+
     def player_entered(self, player) -> list[Message]:
-        messages = super().player_entered(player)
-        # add score to player
-        player.set_state("score", player.get_state("score") + 1)
-        return messages
+        
+        # Hardcoded values for now for testing purposes
+        player_pokemon = "Charmander"
+        player_hp = 80
+        player_max_hp = 100
+        enemy_pokemon = "Charizard"
+        enemy_hp = 120
+        enemy_max_hp = 150
+        
+        return [
+                FightMessage(player, player, 
+                                player_pokemon, player_hp, player_max_hp,
+                                enemy_pokemon, enemy_hp, enemy_max_hp
+                            ), 
+                # InventoryMessage(player, player), 
+                DialogueMessage(self, player, self._PressurePlate__stepping_text, ''), 
+                OptionsMessage(player, player, ["Attack", "Items", "Switch Pokémon", "Run"])
+                ]
+        
+    def update_on_notification(self, stepping_text):
+        self.__stepping_text = stepping_text
+
+
+class ChoosePokemonPlate(PressurePlate):
+    def __init__(self):
+        super().__init__(stepping_text='Choose your starter Pokémon!')
+        self._starter_chosen = False
+
+    def player_entered(self, player) -> list[Message]:
+        if not self._starter_chosen:
+            return [
+                DialogueMessage(self, player, self._PressurePlate__stepping_text, ''),
+                ChoosePokemonMessage(self, player, ["Charmander", "Squirtle", "Bulbasaur"])
+            ]
+        else:
+            return [ServerMessage(player, "You've already chosen your starter Pokémon.")]
+
+    def starter_chosen(self, player, starter_pokemon: str) -> None:
+        self._starter_chosen = True
+        print(f"[PLATE DEBUG] {player.get_name()} chose {starter_pokemon} from the plate.")
+        
+ # --------------------------------
+    
+
+
 
 class PokemonHouse(Map):
     def __init__(self) -> None:
@@ -155,11 +200,11 @@ class PokemonHouse(Map):
         objects.append((door, Coord(26, 25)))
         
         # pressure_plate = ScorePressurePlate()
-        fight_pressure_plate = FightPressurePlate("Test")
+        fight_pressure_plate = FightPressurePlate()
         objects.append((fight_pressure_plate, Coord(26, 22)))
         
         # pressure_plate = ScorePressurePlate()
-        choose_pokemon_plate = ChoosePokemonPlate("Test")
+        choose_pokemon_plate = ChoosePokemonPlate()
         objects.append((choose_pokemon_plate, Coord(25, 22)))
         
         # Create a border of trees

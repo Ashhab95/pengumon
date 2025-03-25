@@ -1,8 +1,12 @@
-# items.py
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
 
-# Abstract Component for items
+# Constants
+class PotionConstants:
+    SMALL_HEAL = 10
+    MEDIUM_HEAL = 20
+    LARGE_HEAL = 1000  
+
 class Item(ABC):
     @abstractmethod
     def get_name(self) -> str:
@@ -16,7 +20,6 @@ class Item(ABC):
     def use(self, target) -> Dict[str, Any]:
         pass
 
-# Base Potion class (replaced the decorator pattern)
 class Potion(Item):
     def __init__(self, name: str, heal_value: int):
         self.name = name
@@ -29,6 +32,12 @@ class Potion(Item):
         return self.heal_value
     
     def use(self, pokemon) -> Dict[str, Any]:
+        if pokemon.is_fainted():
+            return {
+                "success": False,
+                "message": f"{pokemon.name} is fainted and cannot use a potion!"
+            }
+            
         if pokemon.current_health == pokemon.max_health:
             return {
                 "success": False,
@@ -45,62 +54,110 @@ class Potion(Item):
             "amount_healed": amount_healed
         }
 
-# Concrete Potion classes
 class SmallPotion(Potion):
     def __init__(self):
-        super().__init__("Small Potion", 20)
+        super().__init__("Small Potion", PotionConstants.SMALL_HEAL)
 
 class MediumPotion(Potion):
     def __init__(self):
-        super().__init__("Medium Potion", 40)
+        super().__init__("Medium Potion", PotionConstants.MEDIUM_HEAL)
 
 class LargePotion(Potion):
     def __init__(self):
-        super().__init__("Large Potion", 70)
+        super().__init__("Large Potion", PotionConstants.LARGE_HEAL)
 
-# Flyweight Factory - Manages flyweight objects
+
+class PotionDecorator(Potion):
+    def __init__(self, base_potion: Potion):
+        self.base_potion = base_potion
+        super().__init__(f"Enhanced {base_potion.name}", base_potion.heal_value)
+    
+    def get_name(self) -> str:
+        return self.name
+    
+    def get_value(self) -> int:
+        return self.heal_value
+    
+    def use(self, pokemon) -> Dict[str, Any]:
+        return self.base_potion.use(pokemon)
+
+class RevivePotion(PotionDecorator):
+    
+    def __init__(self, base_potion: Potion):
+        super().__init__(base_potion)
+        self.name = f"Revive {base_potion.name}"
+    
+    def use(self, pokemon) -> Dict[str, Any]:
+        was_fainted = pokemon.is_fainted()
+        
+        if was_fainted:
+            pokemon.current_health = 1
+
+        result = self.base_potion.use(pokemon)
+        
+        if was_fainted and result["success"]:
+            result["message"] = f"{self.name} revived {pokemon.name} and restored {result['amount_healed']} HP!"
+            result["revived"] = True
+        
+        return result
+
 class PotionFlyweightFactory:
-    # Shared class-level dictionary to store flyweight instances
+    # Flyweight store
     _flyweights = {}
     
     @classmethod
-    def get_small_potion(cls) -> Potion:
-        """Get or create a small potion flyweight object"""
-        key = "small_potion"
+    def get_potion(cls, potion_type: str) -> Potion:
+        key = potion_type.lower()
+        
         if key not in cls._flyweights:
-            cls._flyweights[key] = SmallPotion()
+            if key == "small potion":
+                cls._flyweights[key] = SmallPotion()
+            elif key == "medium potion":
+                cls._flyweights[key] = MediumPotion()
+            elif key == "large potion":
+                cls._flyweights[key] = LargePotion()
+            elif key == "revive small potion":
+                base_potion = cls.get_potion("small potion")
+                cls._flyweights[key] = RevivePotion(base_potion)
+            elif key == "revive medium potion":
+                base_potion = cls.get_potion("medium potion")
+                cls._flyweights[key] = RevivePotion(base_potion)
+            elif key == "revive large potion":
+                base_potion = cls.get_potion("large potion")
+                cls._flyweights[key] = RevivePotion(base_potion)
+            else:
+                raise ValueError(f"Unknown potion type: {potion_type}")
+        
         return cls._flyweights[key]
+    
+    #accessors
+    @classmethod
+    def get_small_potion(cls) -> Potion:
+        return cls.get_potion("small potion")
     
     @classmethod
     def get_medium_potion(cls) -> Potion:
-        """Get or create a medium potion flyweight object"""
-        key = "medium_potion"
-        if key not in cls._flyweights:
-            cls._flyweights[key] = MediumPotion()
-        return cls._flyweights[key]
+        return cls.get_potion("medium potion")
     
     @classmethod
     def get_large_potion(cls) -> Potion:
-        """Get or create a large potion flyweight object"""
-        key = "large_potion"
-        if key not in cls._flyweights:
-            cls._flyweights[key] = LargePotion()
-        return cls._flyweights[key]
+        return cls.get_potion("large potion")
     
     @classmethod
-    def get_by_name(cls, name: str) -> Optional[Potion]:
-        """Get a flyweight by its name"""
-        name_lower = name.lower()
-        if name_lower == "small potion":
-            return cls.get_small_potion()
-        elif name_lower == "medium potion":
-            return cls.get_medium_potion()
-        elif name_lower == "large potion":
-            return cls.get_large_potion()
-        return None
+    def get_revive_small_potion(cls) -> Potion:
+        return cls.get_potion("revive small potion")
     
     @classmethod
-    def get_flyweight_count(cls) -> int:
-        """Return the number of flyweight instances"""
-        return len(cls._flyweights)
-
+    def get_revive_medium_potion(cls) -> Potion:
+        return cls.get_potion("revive medium potion")
+    
+    @classmethod
+    def get_revive_large_potion(cls) -> Potion:
+        return cls.get_potion("revive large potion")
+    
+    @classmethod
+    def get_max_revive(cls) -> Potion:
+        return cls.get_revive_large_potion()
+    
+#can add attack potions and defense potions
+#attack potion - increases your attack multiplier 

@@ -16,8 +16,6 @@ pokedex = {
         "attacks": [
             {"name": "Scratch", "damage": 10},
             {"name": "Ember", "damage": 15},
-            {"name": "Flame Tail", "damage": 20},
-            {"name": "Flamethrower", "damage": 25}
         ]
     },
     "Squirtle": {
@@ -29,8 +27,6 @@ pokedex = {
         "attacks": [
             {"name": "Tackle", "damage": 10},
             {"name": "Water Gun", "damage": 15},
-            {"name": "Bubble", "damage": 20},
-            {"name": "Aqua Tail", "damage": 25}
         ]
     },
     "Bulbasaur": {
@@ -42,8 +38,6 @@ pokedex = {
         "attacks": [
             {"name": "Vine Whip", "damage": 12},
             {"name": "Tackle", "damage": 10},
-            {"name": "Razor Leaf", "damage": 18},
-            {"name": "Solar Beam", "damage": 25}
         ]
     },
     # Evolved Forms
@@ -57,7 +51,6 @@ pokedex = {
             {"name": "Slash", "damage": 20},
             {"name": "Fire Fang", "damage": 25},
             {"name": "Flamethrower", "damage": 30},
-            {"name": "Fire Blast", "damage": 40}
         ]
     },
     "Wartortle": {
@@ -70,7 +63,6 @@ pokedex = {
             {"name": "Bite", "damage": 20},
             {"name": "Water Pulse", "damage": 25},
             {"name": "Hydro Pump", "damage": 30},
-            {"name": "Skull Bash", "damage": 40}
         ]
     },
     "Ivysaur": {
@@ -83,7 +75,6 @@ pokedex = {
             {"name": "Seed Bomb", "damage": 20},
             {"name": "Razor Leaf", "damage": 25},
             {"name": "Solar Beam", "damage": 30},
-            {"name": "Petal Dance", "damage": 40}
         ]
     },
 
