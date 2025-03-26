@@ -293,18 +293,6 @@ class FightPressurePlate(PressurePlate):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 class PokemonHouse(Map):
     def __init__(self) -> None:
         super().__init__(
@@ -340,47 +328,26 @@ class PokemonHouse(Map):
                     tree = ExtDecor(tree_type)
                     objects.append((tree, Coord(i, j_start)))
     
-    def _add_background(self, objects, start_pos, end_pos, bg_type="sand", direction="horizontal", radius=None, center=None):
+    def _add_backgrounds(self, objects, start_pos, end_pos, step=1, bg_type="sand", direction="area"):
         i_start, j_start = start_pos
+        i_end, j_end = end_pos
         
         if direction == "horizontal":
-            i_end, j_end = end_pos
-            for j in range(j_start, j_end + 1):
-                if 0 <= i_start < self._map_rows and 0 <= j < self._map_cols:
-                    objects.append((Background(bg_type), Coord(i_start, j)))
-        
+            for j in range(j_start, j_end, step):
+                if 0 <= i_start < self._map_rows-1 and 0 <= j < self._map_cols-1:
+                    bg = Background(bg_type)
+                    objects.append((bg, Coord(i_start, j)))
         elif direction == "vertical":
-            i_end, j_end = end_pos
-            for i in range(i_start, i_end + 1):
-                if 0 <= i < self._map_rows and 0 <= j_start < self._map_cols:
-                    objects.append((Background(bg_type), Coord(i, j_start)))
-        
-        elif direction == "circle":
-            if radius is None:
-                raise ValueError("Radius must be provided for circle mode")
-            
-            center_i, center_j = center if center else start_pos
-            radius_squared = radius * radius
-            
-            min_i = max(0, center_i - radius)
-            max_i = min(self._map_rows - 1, center_i + radius)
-            min_j = max(0, center_j - radius)
-            max_j = min(self._map_cols - 1, center_j + radius)
-            
-            for i in range(min_i, max_i + 1):
-                for j in range(min_j, max_j + 1):
-                    distance_squared = (i - center_i)**2 + (j - center_j)**2
-                    
-                    if distance_squared <= radius_squared:
-                        objects.append((Background(bg_type), Coord(i, j)))
-        
-        else:  # rectangle
-            i_end, j_end = end_pos
-            for i in range(i_start, i_end + 1):
-                for j in range(j_start, j_end + 1):
-                    if 0 <= i < self._map_rows and 0 <= j < self._map_cols:
-                        objects.append((Background(bg_type), Coord(i, j)))
-    
+            for i in range(i_start, i_end, step):
+                if 0 <= i < self._map_rows-1 and 0 <= j_start < self._map_cols-1:
+                    bg = Background(bg_type)
+                    objects.append((bg, Coord(i, j_start)))
+        else:  # "area" - fill a rectangular area
+            for i in range(i_start, i_end, step):
+                for j in range(j_start, j_end, step):
+                    if 0 <= i < self._map_rows-1 and 0 <= j < self._map_cols-1:
+                        bg = Background(bg_type)
+                        objects.append((bg, Coord(i, j)))
     def _add_area(self, objects, start_pos, end_pos, obj_type_func, passable=False):
 
         """Helper method to add objects in a rectangular area
@@ -443,7 +410,7 @@ class PokemonHouse(Map):
         
         # Add a door to exit back to Trottier Town
         door = Door('tube', linked_room="Trottier Town")
-        objects.append((door, Coord(26, 25)))
+        objects.append((door, Coord(26, 27)))
         
         
         fight_pressure_plate = FightPressurePlate("Bulbasaur")
@@ -474,19 +441,25 @@ class PokemonHouse(Map):
         
         
         # This code only clutters the map and will be removed for the duration of testing
-        """
-        # Create horizontal sand paths
-        for path_y in [26, 27]:
-            end_x = 22 if path_y == 26 else 28
-            self._add_background(objects, (path_y, 0), (path_y, end_x))
+        
+
+        # Add a sandy path
+        #self._add_backgrounds(objects, (20, 10), (20, 20), step=1, bg_type="sand", direction="vertical")
+
+        # Add a water area 
+        #self._add_backgrounds(objects, (5, 5), (10, 10), step=1, bg_type="water", direction="area")
         
         # Add tree rows above paths
-        for tree_row in [21, 22, 23]:
-            self._add_trees(objects, (tree_row, 3), (tree_row, 26))
+        #for tree_row in [21, 22, 23]:
+         #   self._add_trees(objects, (tree_row, 3), (tree_row, 26))
         
-        # Create vertical sand path
-        self._add_background(objects, (10, 2), (25, 2), direction="vertical")
-        """
+        prof = Professor(
+            encounter_text="Welcome to the Kanto Region, I am Professor Oak. Please step on the blue plate to choose your starter pokemon.",
+            facing_direction='down',
+            staring_distance=3,
+        )
+        objects.append((prof, Coord(25, 24)))
+
         # Adding bushes and pressure plates 
         self._add_bushes_with_plates(objects, (24, 16), (26, 19), evolution_stage=1, plate_probability=0.5)
         self._add_bushes_with_plates(objects, (20, 16), (22, 19), evolution_stage=2, plate_probability=0.5)
