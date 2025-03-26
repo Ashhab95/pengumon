@@ -1,5 +1,5 @@
 import random
-from .poke2 import Pokemon, PokemonFactory
+from .pokemon import Pokemon, PokemonFactory
 from .items import PotionFlyweightFactory 
 from .pokeball import RegularPokeball, GreatBall, UltraBall, MasterBall, Pokeball
 from .bag import Bag

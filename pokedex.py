@@ -78,9 +78,9 @@ pokedex = {
         ]
     },
 
-    #final form 
+    # final form 
     
-     "Charizard": {
+    "Charizard": {
         "name": "Charizard",
         "max_health": 200,
         "type": PokemonType.FIRE,

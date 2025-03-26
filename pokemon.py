@@ -3,12 +3,15 @@ from .pokedex import pokedex, PokemonType
 
 # Constants
 class GameConstants:
-    EVOLUTION_XP_THRESHOLD = 30
-    SECOND_EVOLUTION_XP_THRESHOLD = 60
+    BASE_XP_THRESHOLDD = 30
+    SECOND_XP_THRESHOLD = 60
+    
     BASE_HEALTH_INCREASE = 10
-    SECOND_EVOLUTION_HEALTH_INCREASE = 15
+    SECOND_HEALTH_INCREASE = 15
+    
     BASE_ATTACK_INCREASE = 5
-    SECOND_EVOLUTION_ATTACK_INCREASE = 4
+    SECOND_ATTACK_INCREASE = 4
+    
     EVOLUTION_LEVEL_THRESHOLD = 4
 
 class TypeAdvantageCalculator:
@@ -38,7 +41,7 @@ class EvolutionState:
         return self.evolution_level
     
     def get_xp_threshold(self) -> int:
-        return GameConstants.EVOLUTION_XP_THRESHOLD
+        return GameConstants.BASE_XP_THRESHOLDD
     
     def get_type_multiplier(self, attacker_type, defender_type):
         return TypeAdvantageCalculator.calculate_multiplier(
@@ -50,7 +53,7 @@ class EvolutionState:
     def attack_increase(self):
         return GameConstants.BASE_ATTACK_INCREASE
     
-    def get_next_evolution(self):
+    def get_next_evolution(self, pokemon_name: str) -> Optional[str]:
         return None 
 
 # First evolution state
@@ -72,13 +75,13 @@ class SecondEvolutionState(EvolutionState):
         super().__init__(level=2)
     
     def hp_increase(self):
-        return GameConstants.SECOND_EVOLUTION_HEALTH_INCREASE
+        return GameConstants.SECOND_HEALTH_INCREASE
     
     def attack_increase(self):
-        return GameConstants.SECOND_EVOLUTION_ATTACK_INCREASE
+        return GameConstants.SECOND_ATTACK_INCREASE
     
     def get_xp_threshold(self):
-        return GameConstants.SECOND_EVOLUTION_XP_THRESHOLD
+        return GameConstants.SECOND_XP_THRESHOLD
     
     def get_next_evolution(self, pokemon_name: str) -> Optional[str]:
         evolution_map = {
@@ -94,13 +97,16 @@ class FinalEvolutionState(EvolutionState):
         super().__init__(level=3)
     
     def hp_increase(self) -> int:
-        return GameConstants.SECOND_EVOLUTION_HEALTH_INCREASE
+        return GameConstants.SECOND_HEALTH_INCREASE
     
     def attack_increase(self) -> int:
-        return GameConstants.SECOND_EVOLUTION_ATTACK_INCREASE
+        return GameConstants.SECOND_ATTACK_INCREASE
+    
+    def get_next_evolution(self, pokemon_name: str) -> Optional[str]:
+        # Final evolution, so no next evolution
+        return None
 
 class Pokemon:
-    
     def __init__(self, name: str):
         data = pokedex.get(name)
         if not data:
@@ -158,11 +164,14 @@ class Pokemon:
         return result
 
     def level_up_check(self):
-        if self.xp >= GameConstants.EVOLUTION_XP_THRESHOLD:
-            
+        if isinstance(self.evolution_state, FinalEvolutionState):
+            # Final form — no more level-ups
+            return None
+
+        if self.xp >= self.evolution_state.get_xp_threshold():
             self.xp = 0
             self.level += 1
-            
+
             hp_increase = self.evolution_state.hp_increase()
             attack_increase = self.evolution_state.attack_increase()
             
@@ -170,13 +179,12 @@ class Pokemon:
             self.current_health = self.max_health
             for attack in self.known_attacks:
                 attack["damage"] += attack_increase
-            
-            # Check for evolution
+
             if self.level == GameConstants.EVOLUTION_LEVEL_THRESHOLD:
                 next_evolution = self.evolution_state.get_next_evolution(self.name)
                 if next_evolution:
                     return self.evolve(next_evolution)
-                    
+
         return None
     
     def evolve(self, evolution_name: str) -> 'Pokemon':
@@ -206,8 +214,7 @@ class PokemonFactory:
             PokemonFactory.create_pokemon("Bulbasaur")
         ]
     
-    @staticmethod
-  
+    @staticmethod 
     def create_random_wild_pokemon(level):
         import random
         
@@ -220,7 +227,7 @@ class PokemonFactory:
         
         # Properly level up the Pokemon to reach the target level
         while pokemon.level < level:
-            pokemon.xp = GameConstants.EVOLUTION_XP_THRESHOLD
+            pokemon.xp = GameConstants.BASE_XP_THRESHOLDD
             evolved = pokemon.level_up_check()
             if evolved:
                 pokemon = evolved
