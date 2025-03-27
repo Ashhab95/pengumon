@@ -69,6 +69,46 @@ class ChoosePokemonPlate(PressurePlate):
         player.set_state("active_pokemon", pokemon)  
         player.set_state("pokeballs", [])  
         
+class DisplayActivePokemonPlate(PressurePlate):
+    def __init__(self):
+        super().__init__(image_name="red_down_arrow")
+        self.__player = None
+
+    def player_entered(self, player) -> list[Message]:
+        self.__player = player
+        active_pokemon = player.get_state("active_pokemon", None)
+
+        if not active_pokemon:
+            return [DialogueMessage(self, player, "No active Pokémon found.", "")]
+
+        # Extract relevant stats
+        name = active_pokemon.name
+        level = active_pokemon.level
+        current_hp = str(active_pokemon.current_health)
+        max_hp = str(active_pokemon.max_health)
+        p_type = active_pokemon.p_type.name
+        xp = active_pokemon.xp
+        evo_level = active_pokemon.evolution_state.get_evo_level()
+        attacks = active_pokemon.known_attacks
+        
+        # Collect stats
+        stats = {
+            "name": name,
+            "type": p_type,
+            "evo_level": evo_level,
+            "level": level,
+            "xp": xp,
+            "hp": f"{current_hp}/{max_hp}""",
+            "attacks": attacks
+        }
+        
+        print(attacks)
+
+        message = DisplayActivePokemonMessage(
+            self, player, stats
+        )
+        return [message]
+        
         
 class ChooseDifficultyPlate(PressurePlate):
     def __init__(self):
@@ -422,9 +462,11 @@ class PokemonHouse(Map):
         choose_pokemon_plate = ChoosePokemonPlate()
         objects.append((choose_pokemon_plate, Coord(24, 22)))
         
-        
         choose_difficulty_plate = ChooseDifficultyPlate()
         objects.append((choose_difficulty_plate, Coord(23, 22)))
+        
+        display_active_pokemon_plate = DisplayActivePokemonPlate()
+        objects.append((display_active_pokemon_plate, Coord(22, 22)))
         
         # Create a border of trees
         # Bottom row
