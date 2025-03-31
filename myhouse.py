@@ -44,7 +44,6 @@ class ChoosePokemonPlate(PressurePlate):
         starter_pokemon = player.get_state("starter_pokemon", None)
         
         if starter_pokemon is None:
-            
             # Initialize and add some items to the player's bag
             bag = Bag()
             bag.add_item(PotionFlyweightFactory.get_small_potion())
@@ -53,17 +52,24 @@ class ChoosePokemonPlate(PressurePlate):
             bag.add_item(GreatBall())
             bag.add_item(MasterBall())
             player.set_state("bag", bag)
-            
+
+            # Define options with display name and image path
+            options = [
+                {"Charmander": "image/Pokemon/Charmander_front.png"},
+                {"Squirtle": "image/Pokemon/Squirtle_front.png"},
+                {"Bulbasaur": "image/Pokemon/Bulbasaur_front.png"}
+            ]
+
             return [
                 DialogueMessage(self, player, self._PressurePlate__stepping_text, ""),
-                ChoosePokemonMessage(self, player, ["Charmander", "Squirtle", "Bulbasaur"])
+                ChooseObjectMessage(self, player, options, window_title="Choose your starter Pokémon!")
             ]
         else:
             return [DialogueMessage(self, player, f"You've already chosen {starter_pokemon} as your starter Pokémon.", "")]
 
-    def set_starter(self, player, starter_pokemon: str) -> None:
+    def set_choice(self, player, choice: str) -> None:
         # Create the actual Pokemon object
-        pokemon = PokemonFactory.create_pokemon(starter_pokemon)
+        pokemon = PokemonFactory.create_pokemon(choice)
 
         player.set_state("starter_pokemon", pokemon.name)
         player.set_state("active_pokemon", pokemon)  
@@ -72,10 +78,8 @@ class ChoosePokemonPlate(PressurePlate):
 class DisplayActivePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="red_down_arrow")
-        self.__player = None
 
     def player_entered(self, player) -> list[Message]:
-        self.__player = player
         active_pokemon = player.get_state("active_pokemon", None)
 
         if not active_pokemon:
@@ -84,46 +88,56 @@ class DisplayActivePokemonPlate(PressurePlate):
         # Extract relevant stats
         name = active_pokemon.name
         level = active_pokemon.level
-        current_hp = str(active_pokemon.current_health)
-        max_hp = str(active_pokemon.max_health)
+        current_hp = active_pokemon.current_health
+        max_hp = active_pokemon.max_health
         p_type = active_pokemon.p_type.name
         xp = active_pokemon.xp
         evo_level = active_pokemon.evolution_state.get_evo_level()
         attacks = active_pokemon.known_attacks
-        
-        # Collect stats
-        stats = {
-            "name": name,
-            "type": p_type,
-            "evo_level": evo_level,
-            "level": level,
-            "xp": xp,
-            "hp": f"{current_hp}/{max_hp}""",
-            "attacks": attacks
-        }
-        
-        print(attacks)
 
-        message = DisplayActivePokemonMessage(
-            self, player, stats
-        )
-        return [message]
-        
-        
+        # Format stats as strings
+        stats_lines = [
+            f"Name: {name}",
+            f"Type: {p_type}",
+            f"Evolution Level: {evo_level}",
+            f"Level: {level}",
+            f"XP: {xp}",
+            f"HP: {current_hp}/{max_hp}",
+            "Attacks:"
+        ]
+
+        for i, attack in enumerate(attacks):
+            attack_name = attack.get("name", "")
+            damage = attack.get("damage", 0)
+            stats_lines.append(f" {i + 1}. {attack_name} ({damage})")
+
+        # Image paths (relative to resource folder)
+        top_image_path = f"image/Pokemon/{name}_front.png"
+        bottom_image_path = f"image/Pokemon/{name}_back.png"
+
+        return [
+            DisplayStatsMessage(
+                sender=self,
+                recipient=player,
+                stats=stats_lines,
+                top_image_path=top_image_path,
+                bottom_image_path=bottom_image_path,
+                scale=1.5,
+                window_title="Pokémon Stats"
+            )
+        ]
+               
 class ChooseDifficultyPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="hal9000", stepping_text="Choose your battle difficulty!")
-        self.__player = None
-        self.__current_difficulty = "None"
-        self.__pending_messages: list[Message] = []
+        self.__pending_messages: dict[HumanPlayer, list[Message]] = {}
 
     def player_entered(self, player) -> list[Message]:
-        self.__player = player
         current_ai = player.get_state("enemy_ai", None)
-        self.__current_difficulty = type(current_ai).__name__.replace("AI", "") if current_ai else "None"
+        current_difficulty = type(current_ai).__name__.replace("AI", "") if current_ai else "None"
 
         return [
-            DialogueMessage(self, player, f"Current difficulty: {self.__current_difficulty}\nChoose a new difficulty.", ""),
+            DialogueMessage(self, player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty.", ""),
             OptionsMessage(self, player, ["Easy", "Medium", "Hard"])
         ]
 
@@ -135,23 +149,21 @@ class ChooseDifficultyPlate(PressurePlate):
         }
 
         ai_class = difficulty_map.get(selected_option)
-        player.set_state("enemy_ai", ai_class()) # update player state
-        self.__current_difficulty = selected_option
+        if ai_class:
+            player.set_state("enemy_ai", ai_class())
+            self.__pending_messages[player] = [
+                # DialogueMessage(self, player, f"Difficulty set to {selected_option}.", ""),
+                OptionsMessage(self, player, [], destroy=True)
+            ]
 
-        # Queue messages to be sent in next update
-        self.__pending_messages.append(DialogueMessage(self, player, f"Difficulty set to {selected_option}.", ""))
-        self.__pending_messages.append(OptionsMessage(self, player, [], destroy=True))
-
-        return [] # handled in update
+        return []  # Responses are handled in update()
 
     def update(self) -> list[Message]:
-        if len(self.__pending_messages) > 0:
-            messages = self.__pending_messages
-            self.__pending_messages = [] # clear pending messages so next update doesn't send them again
-            return messages
-        
-        return []
-
+        messages = []
+        for player, pending in list(self.__pending_messages.items()):
+            messages.extend(pending)
+            del self.__pending_messages[player]
+        return messages
 
 class HealActivePokemonPlate(PressurePlate):
     def __init__(self):
@@ -171,10 +183,9 @@ class HealActivePokemonPlate(PressurePlate):
 
         return [DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", "")]
 
-
-class FightPressurePlate(PressurePlate):
+class PokemonBattlePressurePlate(PressurePlate):
     def __init__(self, wild_pokemon_name: str):
-        super().__init__(image_name="bush", stepping_text=f"You encountered a wild {wild_pokemon_name}!")
+        super().__init__(image_name="bushh", stepping_text=f"You encountered a wild {wild_pokemon_name}!")
         self.__wild_pokemon_name = wild_pokemon_name
         self.__current_option = None
         self.__player = None
@@ -205,22 +216,38 @@ class FightPressurePlate(PressurePlate):
         now = time.time()
         messages = []
 
+        def battle_data():
+            return PokemonBattleMessage(
+                self.__player,
+                self.__player,
+                player_data={
+                    "name": self.__player_pokemon.name if self.__player_pokemon else "Unknown",
+                    "level": self.__player_pokemon.level if self.__player_pokemon else 1,
+                    "hp": self.__player_pokemon.current_health if self.__player_pokemon else 0,
+                    "max_hp": self.__player_pokemon.max_health if self.__player_pokemon else 1
+                },
+                enemy_data={
+                    "name": self.__enemy_pokemon.name if self.__enemy_pokemon else "Unknown",
+                    "level": self.__enemy_pokemon.level if self.__enemy_pokemon else 1,
+                    "hp": self.__enemy_pokemon.current_health if self.__enemy_pokemon else 0,
+                    "max_hp": self.__enemy_pokemon.max_health if self.__enemy_pokemon else 1
+                }
+            )
+
         if self.__turn_stage == TurnStage.INTRO:
             messages.extend([
                 ServerMessage(self.__player, f"You encountered a wild {self.__enemy_pokemon.name}!"),
-                FightMessage(self.__player, self.__player,
-                             self.__player_pokemon.name, self.__player_pokemon.current_health, self.__player_pokemon.max_health,
-                             self.__enemy_pokemon.name, self.__enemy_pokemon.current_health, self.__enemy_pokemon.max_health),
+                battle_data()
             ])
             self.__turn_stage = TurnStage.PLAYER_TURN
             self.__last_action_time = now
 
         elif self.__turn_stage == TurnStage.PLAYER_TURN:
             self.clear_option()
-            attack_options = []
-            for i, attack in enumerate(self.__player_pokemon.known_attacks):
-                option = f"{i}: {attack['name']} ({attack['damage']})"
-                attack_options.append(option)
+            attack_options = [
+                f"{i}: {attack['name']} ({attack['damage']})"
+                for i, attack in enumerate(self.__player_pokemon.known_attacks)
+            ]
             full_options = attack_options + ["Dodge", "Run"]
             messages.append(OptionsMessage(self, self.__player, full_options))
             self.__turn_stage = TurnStage.AWAIT_INPUT
@@ -235,7 +262,6 @@ class FightPressurePlate(PressurePlate):
                     self.__player_used_dodge = True
                     messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {self.__player_pokemon.name} prepares to dodge!"))
                     self.__turn_stage = TurnStage.ENEMY_WAIT
-                    self.__last_action_time = now
 
                 elif selected == "Run":
                     if random.random() < PLAYER_CHANCE_TO_RUN:
@@ -244,10 +270,9 @@ class FightPressurePlate(PressurePlate):
                     else:
                         messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) You tried to run but couldn't escape!"))
                         self.__turn_stage = TurnStage.ENEMY_WAIT
-                        self.__last_action_time = now
 
-                elif ":" in selected and selected.split(":" )[0].isdigit():
-                    attack_index = int(selected.split(":" )[0])
+                elif ":" in selected and selected.split(":")[0].isdigit():
+                    attack_index = int(selected.split(":")[0])
                     if 0 <= attack_index < len(self.__player_pokemon.known_attacks):
                         if self.__enemy_used_dodge and random.random() < OPPONENT_CHANCE_TO_DODGE:
                             messages.append(ServerMessage(self.__player,
@@ -257,15 +282,14 @@ class FightPressurePlate(PressurePlate):
                                 messages.append(ServerMessage(self.__player, f"(Opp) Dodge failed!"))
                             result = self.__player_pokemon.attack(attack_index, self.__enemy_pokemon)
                             messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {result['message']} It dealt {result['damage']} damage."))
-                            messages.append(FightMessage(self.__player, self.__player,
-                                                        self.__player_pokemon.name, self.__player_pokemon.current_health, self.__player_pokemon.max_health,
-                                                        self.__enemy_pokemon.name, self.__enemy_pokemon.current_health, self.__enemy_pokemon.max_health))
+                            messages.append(battle_data())
+
                             if result.get("evolved"):
                                 self.__player.set_state("active_pokemon", result["evolved"])
                                 self.__player_pokemon = result["evolved"]
                                 messages.append(ServerMessage(self.__player, f"Your Pokémon evolved into {self.__player_pokemon.name}!"))
-                                
-                            self.__enemy_used_dodge = False
+
+                        self.__enemy_used_dodge = False
 
                     if self.__player_pokemon.is_fainted():
                         messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {self.__player_pokemon.name} has fainted! You lost."))
@@ -275,10 +299,12 @@ class FightPressurePlate(PressurePlate):
                         self.__turn_stage = TurnStage.END
                     else:
                         self.__turn_stage = TurnStage.ENEMY_WAIT
-                        self.__last_action_time = now
+
                 else:
                     messages.append(ServerMessage(self.__player, "Unrecognized action."))
                     self.__turn_stage = TurnStage.PLAYER_TURN
+
+                self.__last_action_time = now
 
         elif self.__turn_stage == TurnStage.ENEMY_WAIT:
             if now - self.__last_action_time >= ENEMY_RESPONSE_TIME:
@@ -294,33 +320,32 @@ class FightPressurePlate(PressurePlate):
             else:
                 attack_index = int(action)
                 attack = self.__enemy_pokemon.known_attacks[attack_index]
-                
+
                 if self.__player_used_dodge and random.random() < PLAYER_CHANCE_TO_DODGE:
                     messages.append(ServerMessage(self.__player,
                         f"({self.__player.get_name()}) {self.__player_pokemon.name} dodged {attack['name']} attack!"))
                 else:
                     result = self.__enemy_pokemon.attack(attack_index, self.__player_pokemon)
                     messages.append(ServerMessage(self.__player, f"(Opp) {result['message']} It dealt {result['damage']} damage."))
-                    messages.append(FightMessage(self.__player, self.__player,
-                                                 self.__player_pokemon.name, self.__player_pokemon.current_health, self.__player_pokemon.max_health,
-                                                 self.__enemy_pokemon.name, self.__enemy_pokemon.current_health, self.__enemy_pokemon.max_health))
+                    messages.append(battle_data())
+
             self.__player_used_dodge = False
 
             if self.__player_pokemon.is_fainted():
                 messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {self.__player_pokemon.name} has fainted! You lost."))
                 self.__turn_stage = TurnStage.END
             elif self.__enemy_pokemon.is_fainted():
-                messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {self.__enemy_pokemon.name} has fainted! You won."))
+                messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {self.__enemy_pokemon.name} has fainted! You won!"))
                 self.__turn_stage = TurnStage.END
             else:
                 self.__turn_stage = TurnStage.PLAYER_TURN
-                self.__last_action_time = now
+
+            self.__last_action_time = now
 
         elif self.__turn_stage == TurnStage.END:
             messages.append(ServerMessage(self.__player, "The battle has ended!"))
             messages.append(OptionsMessage(self, self.__player, [], destroy=True))
-            messages.append(FightMessage(self, self.__player, "", "", 0, 0, 0, 0, destroy=True))
-
+            messages.append(PokemonBattleMessage(self, self.__player, {}, {}, destroy=True))
             self.__player.set_state("active_pokemon", self.__player_pokemon)
             self.__turn_stage = TurnStage.CLEANUP
 
@@ -328,6 +353,11 @@ class FightPressurePlate(PressurePlate):
             return []
 
         return messages
+
+class PokemonCenter(Building):
+    def __init__(self, linked_room_str: str = "") -> None:
+        super().__init__('pokemon_center', door_position=Coord(5, 3), linked_room_str=linked_room_str)
+
                 
 # --------------------------------
 
@@ -340,78 +370,47 @@ class PokemonHouse(Map):
             description="Welcome to the Kanto region!",
             size=(30, 30),
             entry_point=Coord(26, 26),
-            background_tile_image='grass',
+            background_tile_image='poke_grass',
         )
     
-    def _add_trees(self, objects, start_pos, end_pos, step=2, tree_type="tree_large_1", direction="horizontal"):
-        """Helper method to add trees in a line
+    def _add_trees(self, objects, start_pos, end_pos, step=1, tree_type="tree_lar", direction="horizontal"):
+        """
+        Helper method to add trees to the map.
         
         Args:
             objects: List to append objects to
-            start_pos: Starting coordinate (i, j)
-            end_pos: Ending coordinate (i, j)
-            step: Spacing between trees
-            tree_type: Type of tree to place
-            direction: "horizontal" or "vertical"
+            start_pos: (i, j) tuple, top-left corner
+            end_pos: (i, j) tuple, bottom-right corner
+            step: Gap between trees
+            tree_type: Image name of tree
+            direction: "horizontal", "vertical", or "area"
         """
         i_start, j_start = start_pos
         i_end, j_end = end_pos
-        
+
         if direction == "horizontal":
             for j in range(j_start, j_end, step):
                 if 0 <= i_start < self._map_rows-1 and 0 <= j < self._map_cols-1:
                     tree = ExtDecor(tree_type)
                     objects.append((tree, Coord(i_start, j)))
-        else:  # vertical
+
+        elif direction == "vertical":
             for i in range(i_start, i_end, step):
                 if 0 <= i < self._map_rows-1 and 0 <= j_start < self._map_cols-1:
                     tree = ExtDecor(tree_type)
                     objects.append((tree, Coord(i, j_start)))
-    
-    def _add_backgrounds(self, objects, start_pos, end_pos, step=1, bg_type="sand", direction="area"):
-        i_start, j_start = start_pos
-        i_end, j_end = end_pos
-        
-        if direction == "horizontal":
-            for j in range(j_start, j_end, step):
-                if 0 <= i_start < self._map_rows-1 and 0 <= j < self._map_cols-1:
-                    bg = Background(bg_type)
-                    objects.append((bg, Coord(i_start, j)))
-        elif direction == "vertical":
-            for i in range(i_start, i_end, step):
-                if 0 <= i < self._map_rows-1 and 0 <= j_start < self._map_cols-1:
-                    bg = Background(bg_type)
-                    objects.append((bg, Coord(i, j_start)))
-        else:  # "area" - fill a rectangular area
-            for i in range(i_start, i_end, step):
-                for j in range(j_start, j_end, step):
-                    if 0 <= i < self._map_rows-1 and 0 <= j < self._map_cols-1:
-                        bg = Background(bg_type)
-                        objects.append((bg, Coord(i, j)))
-    def _add_area(self, objects, start_pos, end_pos, obj_type_func, passable=False):
 
-        """Helper method to add objects in a rectangular area
-        
-        Args:
-            objects: List to append objects to
-            start_pos: Starting coordinate (i, j)
-            end_pos: Ending coordinate (i, j)
-            obj_type_func: Function that creates the object
-            passable: Whether the object should be passable
-        """
-        i_start, j_start = start_pos
-        i_end, j_end = end_pos
-        
-        for i in range(i_start, i_end + 1):
-            for j in range(j_start, j_end + 1):
-                if 0 <= i < self._map_rows and 0 <= j < self._map_cols:
-                    obj = obj_type_func()
-                    if passable:
-                        obj._MapObject__passable = True
-                    objects.append((obj, Coord(i, j)))
+        elif direction == "area":
+            for i in range(i_start, i_end + 1, step):
+                for j in range(j_start, j_end + 1, step):
+                    if 0 <= i < self._map_rows-1 and 0 <= j < self._map_cols-1:
+                        tree = ExtDecor(tree_type)
+                        objects.append((tree, Coord(i, j)))
+
+
     
     def _add_bushes_with_plates(self, objects, start_pos, end_pos, evolution_stage=1, plate_probability=0.8):
-        """Add an area of bushes with random FightPressurePlates beneath.
+        """Add an area of bushes with random PokemonBattlePressurePlates beneath.
         
         Args:
             objects: List to append objects to.
@@ -437,10 +436,10 @@ class PokemonHouse(Map):
                         possible_pokemon = evolution_pools.get(evolution_stage, [])
                         if possible_pokemon:
                             chosen = random.choice(possible_pokemon)
-                            plate = FightPressurePlate(chosen) # fight ressure plate with random Pokémon
+                            plate = PokemonBattlePressurePlate(chosen) # pokemon battle pressure plate with random Pokémon
                             objects.append((plate, Coord(i, j)))
                     else: # random.random() >= plate_probability
-                        bush = ExtDecor("bush") # regular bush
+                        bush = ExtDecor("bushh") # regular bush
                         bush._MapObject__passable = True
                         objects.append((bush, Coord(i, j)))
     
@@ -453,58 +452,86 @@ class PokemonHouse(Map):
         objects.append((door, Coord(26, 27)))
         
         
-        fight_pressure_plate = FightPressurePlate("Bulbasaur")
-        objects.append((fight_pressure_plate, Coord(26, 22)))
+        pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
+        objects.append((pokemon_battle_plate, Coord(19, 26)))
         
         heal_pokemon_plate = HealActivePokemonPlate()
-        objects.append((heal_pokemon_plate, Coord(25, 22)))
+        objects.append((heal_pokemon_plate, Coord(19, 25)))
         
         choose_pokemon_plate = ChoosePokemonPlate()
-        objects.append((choose_pokemon_plate, Coord(24, 22)))
+        objects.append((choose_pokemon_plate, Coord(19, 24)))
         
         choose_difficulty_plate = ChooseDifficultyPlate()
-        objects.append((choose_difficulty_plate, Coord(23, 22)))
+        objects.append((choose_difficulty_plate, Coord(19, 23)))
         
         display_active_pokemon_plate = DisplayActivePokemonPlate()
-        objects.append((display_active_pokemon_plate, Coord(22, 22)))
+        objects.append((display_active_pokemon_plate, Coord(19, 22)))
         
-        # Create a border of trees
+       # Create a border of trees
         # Bottom row
-        self._add_trees(objects, (self._map_rows - 3, 2), (self._map_rows - 3, self._map_cols - 1))
-        
+        self._add_trees(objects, (self._map_rows - 3, 2), (self._map_rows - 3, self._map_cols - 1), step=2)
         # Left column
-        self._add_trees(objects, (1, 0), (self._map_rows - 1, 0), direction="vertical")
-        
+        self._add_trees(objects, (1, 0), (self._map_rows - 1, 0),step=2, direction="vertical")
         # Right column
-        self._add_trees(objects, (1, 28), (self._map_rows - 1, 28), direction="vertical")
-        
+        self._add_trees(objects, (1, 28), (self._map_rows - 1, 28), step = 2,  direction="vertical")
         # Top row
-        self._add_trees(objects, (0, 2), (0, self._map_cols - 2))
+        self._add_trees(objects, (0, 2), (0, self._map_cols - 2), step=2)
         
         
-        # This code only clutters the map and will be removed for the duration of testing
-        
+        # Add tree rows above entry path
+        for tree_row in [21, 22, 23]:
+            self._add_trees(objects, (tree_row, 3), (tree_row, 25),step=2)
 
-        # Add a sandy path
-        #self._add_backgrounds(objects, (20, 10), (20, 20), step=1, bg_type="sand", direction="vertical")
-
-        # Add a water area 
-        #self._add_backgrounds(objects, (5, 5), (10, 10), step=1, bg_type="water", direction="area")
-        
-        # Add tree rows above paths
-        #for tree_row in [21, 22, 23]:
-         #   self._add_trees(objects, (tree_row, 3), (tree_row, 26))
-        
         prof = Professor(
-            encounter_text="Welcome to the Kanto Region, I am Professor Oak. Please step on the blue plate to choose your starter pokemon.",
-            facing_direction='down',
+            encounter_text="Welcome to the Kanto Region, I am Professor Oak. Please step on the blue plate to choose your starter Pokemon. ",
+            facing_direction="down",
             staring_distance=3,
         )
         objects.append((prof, Coord(25, 24)))
 
+        choose_pokemon_plate = ChoosePokemonPlate()
+        objects.append((choose_pokemon_plate, Coord(26, 20)))
+
+        self._add_trees(objects, (16, 2), (16, 16),step=1, tree_type="tree_s")
+        self._add_bushes_with_plates(objects, (18, 3), (20, 6), evolution_stage=1, plate_probability=0.5)
+        self._add_trees(objects, (18, 7), (21, 7),step = 2, tree_type = "rock_1", direction="vertical")
+    
+        self._add_trees(objects, (18, 8), (18, 12),step = 1, tree_type = "flower_large_blue")
+        self._add_trees(objects, (20, 8), (20, 12),step = 1, tree_type = "flower_large_blue")
+        
+        building = PokemonCenter(linked_room_str="Pokemon Center")
+        objects.append((building, Coord(10, 22)))
+        sign = Sign(text="Welcome to the Pokemon Center")
+        objects.append((sign, Coord(15, 21)))
+        self._add_bushes_with_plates(objects, (7, 22), (9, 27), evolution_stage=1, plate_probability=0.4)
+        self._add_bushes_with_plates(objects, (3, 22), (6, 27), evolution_stage=2, plate_probability=0.7)
+        objects.append((MapObject.get_obj('flower_small_red'), Coord(3, 21)))
+        objects.append((MapObject.get_obj('flower_small_red'), Coord(4, 21)))
+        objects.append((MapObject.get_obj('flower_small_red'), Coord(8, 21)))
+        objects.append((MapObject.get_obj('flower_small_red'), Coord(9, 21)))
+        self._add_trees(objects, (5, 15), (16, 15),step = 1, tree_type = "tree_s", direction="vertical")
+        self._add_trees(objects, (5, 14), (16, 14),step = 1, tree_type = "tree_s", direction="vertical")
+        self._add_trees(objects, (5, 13), (16, 13),step = 1, tree_type = "tree_s", direction="vertical")
+        self._add_trees(objects, (5, 12), (16, 12),step = 1, tree_type = "tree_s", direction="vertical")
+        self._add_trees(objects, (3, 7), (13, 7),step = 1, tree_type = "tree_s", direction="vertical")
+        self._add_trees(objects, (7, 6), (13, 6),step = 1, tree_type = "tree_s", direction="vertical")
+        self._add_bushes_with_plates(objects, (8, 2), (13, 5), evolution_stage=2, plate_probability=0.6)
+        self._add_bushes_with_plates(objects, (3, 12), (4,15), evolution_stage=1, plate_probability=0.6)
+        self._add_bushes_with_plates(objects, (13, 8), (15,11), evolution_stage=1, plate_probability=0.6)
+        sign = Sign(text="Dangerous Pokemon's ahead, continue at your own risk. ")
+        objects.append((sign, Coord(5, 16)))
+            
+
+        
+     
+
         # Adding bushes and pressure plates 
-        self._add_bushes_with_plates(objects, (24, 16), (26, 19), evolution_stage=1, plate_probability=0.5)
-        self._add_bushes_with_plates(objects, (20, 16), (22, 19), evolution_stage=2, plate_probability=0.5)
-        self._add_bushes_with_plates(objects, (16, 16), (18, 19), evolution_stage=3, plate_probability=0.5)
+
+        #self._add_bushes_with_plates(objects, (20, 16), (22, 19), evolution_stage=2, plate_probability=0.5)
+        self._add_bushes_with_plates(objects, (3, 2), (5, 4), evolution_stage=3, plate_probability=0.5)
+        objects.append((MapObject.get_obj('rock_1'), Coord(3, 5)))
+        objects.append((MapObject.get_obj('rock_1'), Coord(5, 5)))
+        self._add_trees(objects, (6, 2), (6, 5),step = 1, tree_type = "tree_small_1")
+        
         
         return objects
