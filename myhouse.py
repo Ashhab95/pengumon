@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from tiles.base import MapObject
     from tiles.map_objects import *
 
+
 # Our imports   
 import time
 from .pokemon import *
@@ -15,6 +16,9 @@ from .pokeball import *
 from .bag import Bag
 from .enemyAI import *
 from enum import Enum, auto
+from typing import Literal
+from collections.abc import Callable
+
 
 # Global constants
 PLAYER_CHANCE_TO_DODGE = 0.5
@@ -31,10 +35,12 @@ class TurnStage(Enum):
     ENEMY_TURN = auto()
     END = auto()
     CLEANUP = auto()
-     
+
+
      
 # Map objects we added ourselves
 # --------------------------------
+#not needed anymore, simply interact with the prof.
 class ChoosePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="blue_circle", stepping_text='Choose your starter Pokémon!')
@@ -65,7 +71,7 @@ class ChoosePokemonPlate(PressurePlate):
                 ChooseObjectMessage(self, player, options, window_title="Choose your starter Pokémon!")
             ]
         else:
-            return [DialogueMessage(self, player, f"You've already chosen {starter_pokemon} as your starter Pokémon.", "")]
+            return [DialogueMessage(self, player, f"Welcome back to the Kanto region! How is your {starter_pokemon} doing?", "")]
 
     def set_choice(self, player, choice: str) -> None:
         # Create the actual Pokemon object
@@ -74,7 +80,8 @@ class ChoosePokemonPlate(PressurePlate):
         player.set_state("starter_pokemon", pokemon.name)
         player.set_state("active_pokemon", pokemon)  
         player.set_state("pokeballs", [])  
-        
+
+#not needed anymore, now use keybind v     
 class DisplayActivePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="red_down_arrow")
@@ -165,6 +172,7 @@ class ChooseDifficultyPlate(PressurePlate):
             del self.__pending_messages[player]
         return messages
 
+#not needed anymore, simply interact with the nurse
 class HealActivePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="green_circle", stepping_text="Your Pokémon feels refreshed!")
@@ -360,6 +368,59 @@ class PokemonCenter(Building):
 
                 
 # --------------------------------
+from typing import Literal
+
+class ProfessorOak(NPC):
+    def __init__(self, encounter_text: str = "Welcome to the Kanto Region. Choose your starter Pokémon!", staring_distance: int = 3, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
+        super().__init__(
+            name="Professor Oak",
+            image='prof',
+            encounter_text=encounter_text,
+            facing_direction=facing_direction,
+            staring_distance=staring_distance
+        )
+
+    def player_interacted(self, player: HumanPlayer) -> list[Message]:
+        messages: list[Message] = []
+
+        # Has the player already chosen a starter?
+        starter_pokemon = player.get_state("starter_pokemon", None)
+        if starter_pokemon:
+            messages.append(DialogueMessage(self, player, f"Welcome back to the Kanto region! How is your {starter_pokemon} doing?", ""))
+            return messages
+
+        # Intro message
+        messages.append(DialogueMessage(self, player, self._NPC__encounter_text, self.get_image_name()))
+
+        # Give initial items
+        bag = Bag()
+        bag.add_item(PotionFlyweightFactory.get_small_potion())
+        bag.add_item(PotionFlyweightFactory.get_medium_potion())
+        bag.add_item(RegularPokeball())
+        bag.add_item(GreatBall())
+        bag.add_item(MasterBall())
+        player.set_state("bag", bag)
+
+        # Starter options
+        options = [
+            {"Charmander": "image/Pokemon/Charmander_front.png"},
+            {"Squirtle": "image/Pokemon/Squirtle_front.png"},
+            {"Bulbasaur": "image/Pokemon/Bulbasaur_front.png"}
+        ]
+
+        # Show starter selection menu
+        messages.append(ChooseObjectMessage(self, player, options, window_title="Choose your starter Pokémon!"))
+
+        return messages
+
+    def set_choice(self, player: HumanPlayer, choice: str) -> None:
+        pokemon = PokemonFactory.create_pokemon(choice)
+
+        # Save choice
+        player.set_state("starter_pokemon", pokemon.name)
+        player.set_state("active_pokemon", pokemon)
+        player.set_state("pokeballs", [])
+
 
 
 
@@ -443,7 +504,51 @@ class PokemonHouse(Map):
                         bush._MapObject__passable = True
                         objects.append((bush, Coord(i, j)))
     
-    
+    def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
+        #cannot get this work in a seperate file 
+        keybinds = super()._get_keybinds()
+
+        def view_active_pokemon(player: HumanPlayer) -> list[Message]:
+            active_pokemon = player.get_state("active_pokemon", None)
+            if not active_pokemon:
+                return [DialogueMessage(self, player, "No active Pokémon found.", "")]
+
+            name = active_pokemon.name
+            level = active_pokemon.level
+            current_hp = active_pokemon.current_health
+            max_hp = active_pokemon.max_health
+            p_type = active_pokemon.p_type.name
+            xp = active_pokemon.xp
+            evo_level = active_pokemon.evolution_state.get_evo_level()
+            attacks = active_pokemon.known_attacks
+
+            stats_lines = [
+                f"Name: {name}",
+                f"Type: {p_type}",
+                f"Evolution Level: {evo_level}",
+                f"Level: {level}",
+                f"XP: {xp}",
+                f"HP: {current_hp}/{max_hp}",
+                "Attacks:"
+            ]
+            for i, attack in enumerate(attacks):
+                stats_lines.append(f" {i + 1}. {attack['name']} ({attack['damage']})")
+
+            return [
+                DisplayStatsMessage(
+                    sender=self,
+                    recipient=player,
+                    stats=stats_lines,
+                    top_image_path=f"image/Pokemon/{name}_front.png",
+                    bottom_image_path=f"image/Pokemon/{name}_back.png",
+                    scale=1.5,
+                    window_title="Pokémon Stats"
+                )
+            ]
+
+        keybinds["v"] = view_active_pokemon
+        return keybinds
+
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
         
@@ -458,8 +563,8 @@ class PokemonHouse(Map):
         heal_pokemon_plate = HealActivePokemonPlate()
         objects.append((heal_pokemon_plate, Coord(19, 25)))
         
-        choose_pokemon_plate = ChoosePokemonPlate()
-        objects.append((choose_pokemon_plate, Coord(19, 24)))
+        #choose_pokemon_plate = ChoosePokemonPlate()
+        #objects.append((choose_pokemon_plate, Coord(19, 24)))
         
         choose_difficulty_plate = ChooseDifficultyPlate()
         objects.append((choose_difficulty_plate, Coord(19, 23)))
@@ -482,15 +587,15 @@ class PokemonHouse(Map):
         for tree_row in [21, 22, 23]:
             self._add_trees(objects, (tree_row, 3), (tree_row, 25),step=2)
 
-        prof = Professor(
+        prof = ProfessorOak(
             encounter_text="Welcome to the Kanto Region, I am Professor Oak. Please step on the blue plate to choose your starter Pokemon. ",
             facing_direction="down",
             staring_distance=3,
         )
         objects.append((prof, Coord(25, 24)))
 
-        choose_pokemon_plate = ChoosePokemonPlate()
-        objects.append((choose_pokemon_plate, Coord(26, 20)))
+        #choose_pokemon_plate = ChoosePokemonPlate()
+        #objects.append((choose_pokemon_plate, Coord(26, 20)))
 
         self._add_trees(objects, (16, 2), (16, 16),step=1, tree_type="tree_s")
         self._add_bushes_with_plates(objects, (18, 3), (20, 6), evolution_stage=1, plate_probability=0.5)

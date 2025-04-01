@@ -1,10 +1,12 @@
 from .imports import *
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from coord import Coord
     from maps.base import Map
     from tiles.base import MapObject
     from tiles.map_objects import *
+   
 
 class HealActivePokemonPlate(PressurePlate):
     
@@ -26,13 +28,36 @@ class HealActivePokemonPlate(PressurePlate):
         return [DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", "")]
 
 class Nurse(NPC):
-    def __init__(self, encounter_text: str, staring_distance: int = 0,) -> None:
+    def __init__(self, encounter_text: str, staring_distance: int = 3) -> None:
         super().__init__(
             name="Nurse Joy",
             image='joy3',
             encounter_text=encounter_text,
-            staring_distance=staring_distance,
+            facing_direction='down',
+            staring_distance=staring_distance
         )
+    def player_interacted(self, player: HumanPlayer) -> list[Message]:
+        messages: list[Message] = []
+
+        # Initial dialogue
+        messages.append(DialogueMessage(self, player, self._NPC__encounter_text, self.get_image_name()))
+
+        # Get active Pokémon
+        active_pokemon = player.get_state("active_pokemon", None)
+        if active_pokemon is None:
+            messages.append(DialogueMessage(self, player, "You don’t have a Pokémon to heal.", ""))
+            return messages
+
+        if active_pokemon.current_health == active_pokemon.max_health:
+            messages.append(DialogueMessage(self, player, "Your Pokémon is already at full health.", ""))
+            return messages
+
+        # Heal the Pokémon
+        active_pokemon.current_health = active_pokemon.max_health
+        player.set_state("active_pokemon", active_pokemon)
+        messages.append(DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", ""))
+
+        return messages
 
 
 
@@ -45,7 +70,49 @@ class PokemonCenter(Map):
             entry_point=Coord(13, 7),
             background_tile_image='wood_brown',
         )
+    def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
+        keybinds = super()._get_keybinds()
 
+        def view_active_pokemon(player: HumanPlayer) -> list[Message]:
+            active_pokemon = player.get_state("active_pokemon", None)
+            if not active_pokemon:
+                return [DialogueMessage(self, player, "No active Pokémon found.", "")]
+
+            name = active_pokemon.name
+            level = active_pokemon.level
+            current_hp = active_pokemon.current_health
+            max_hp = active_pokemon.max_health
+            p_type = active_pokemon.p_type.name
+            xp = active_pokemon.xp
+            evo_level = active_pokemon.evolution_state.get_evo_level()
+            attacks = active_pokemon.known_attacks
+
+            stats_lines = [
+                f"Name: {name}",
+                f"Type: {p_type}",
+                f"Evolution Level: {evo_level}",
+                f"Level: {level}",
+                f"XP: {xp}",
+                f"HP: {current_hp}/{max_hp}",
+                "Attacks:"
+            ]
+            for i, attack in enumerate(attacks):
+                stats_lines.append(f" {i + 1}. {attack['name']} ({attack['damage']})")
+
+            return [
+                DisplayStatsMessage(
+                    sender=self,
+                    recipient=player,
+                    stats=stats_lines,
+                    top_image_path=f"image/Pokemon/{name}_front.png",
+                    bottom_image_path=f"image/Pokemon/{name}_back.png",
+                    scale=1.5,
+                    window_title="Pokémon Stats"
+                )
+            ]
+
+        keybinds["v"] = view_active_pokemon
+        return keybinds
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
 
@@ -69,7 +136,7 @@ class PokemonCenter(Map):
         objects.append((MapObject.get_obj('sofa'), Coord(11, 11)))
         
         nurse = Nurse(
-            encounter_text="Hello I am Nurse Joy, Please step on the plate beside you to heal your active Pokemon!",
+            encounter_text="Hello I am Nurse Joy, Please allow me to heal your active pokemon!",
             staring_distance=3,
         )
         nurse1 = Nurse(
