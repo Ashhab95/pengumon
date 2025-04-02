@@ -468,8 +468,28 @@ class PokemonHouse(Map):
                         tree = ExtDecor(tree_type)
                         objects.append((tree, Coord(i, j)))
 
+    def _add_tile_line(self, objects, tile_name: str, start: tuple[int, int], end: tuple[int, int]):
 
-    
+        y1, x1 = start
+        y2, x2 = end
+
+        if y1 == y2:
+            for x in range(min(x1, x2), max(x1, x2) + 1):
+                tile = MapObject.get_obj(tile_name)
+                tile._MapObject__z_index = 0
+                objects.append((tile, Coord(y1, x)))
+        elif x1 == x2:
+            for y in range(min(y1, y2), max(y1, y2) + 1):
+                tile = MapObject.get_obj(tile_name)
+                tile._MapObject__z_index = 0
+                objects.append((tile, Coord(y, x1)))
+
+    def place(self, objects, tile_name: str, position: tuple[int, int]):
+        y, x = position
+        tile = MapObject.get_obj(tile_name)
+        tile._MapObject__z_index = 0
+        objects.append((tile, Coord(y, x)))
+  
     def _add_bushes_with_plates(self, objects, start_pos, end_pos, evolution_stage=1, plate_probability=0.8):
         """Add an area of bushes with random PokemonBattlePressurePlates beneath.
         
@@ -557,20 +577,20 @@ class PokemonHouse(Map):
         objects.append((door, Coord(26, 27)))
         
         
-        pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
-        objects.append((pokemon_battle_plate, Coord(19, 26)))
+        #pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
+        #objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        heal_pokemon_plate = HealActivePokemonPlate()
-        objects.append((heal_pokemon_plate, Coord(19, 25)))
+        #heal_pokemon_plate = HealActivePokemonPlate()
+        #objects.append((heal_pokemon_plate, Coord(19, 25)))
         
         #choose_pokemon_plate = ChoosePokemonPlate()
         #objects.append((choose_pokemon_plate, Coord(19, 24)))
         
-        choose_difficulty_plate = ChooseDifficultyPlate()
-        objects.append((choose_difficulty_plate, Coord(19, 23)))
+        #choose_difficulty_plate = ChooseDifficultyPlate()
+        #objects.append((choose_difficulty_plate, Coord(19, 23)))
         
-        display_active_pokemon_plate = DisplayActivePokemonPlate()
-        objects.append((display_active_pokemon_plate, Coord(19, 22)))
+        #display_active_pokemon_plate = DisplayActivePokemonPlate()
+        #objects.append((display_active_pokemon_plate, Coord(19, 22)))
         
        # Create a border of trees
         # Bottom row
@@ -584,8 +604,22 @@ class PokemonHouse(Map):
         
         
         # Add tree rows above entry path
-        for tree_row in [21, 22, 23]:
-            self._add_trees(objects, (tree_row, 3), (tree_row, 25),step=2)
+        for tree_row in [21, 22]:
+            self._add_trees(objects, (tree_row, 4), (tree_row, 26),step=2)
+
+        self._add_tile_line(objects, 'poke_sand_up', start=(25, 4), end=(25, 25))
+        self._add_tile_line(objects, 'poke_sand_down', start=(26, 2), end=(26, 25))
+        self.place(objects,'bottom_left', (26,2))
+        self._add_tile_line(objects, 'sand_left', start=(25, 2), end=(18, 2))
+        self._add_tile_line(objects, 'sand_right', start=(24, 3), end=(18, 3))
+        self.place(objects, 'poke_sand', (25, 3))
+        self.place(objects, 'top_left', (18, 2))
+        self.place(objects, 'top_right', (18, 3))
+        self.place(objects, 'top_right', (25, 26))
+        self.place(objects, 'bottom_right', (26, 26))
+
+        sign = Sign(text="You can view the stats of your active Pokemon by clicking on v! ")
+        objects.append((sign, Coord(26, 2)))
 
         prof = ProfessorOak(
             encounter_text="Welcome to the Kanto Region, I am Professor Oak. Please step on the blue plate to choose your starter Pokemon. ",
@@ -598,12 +632,18 @@ class PokemonHouse(Map):
         #objects.append((choose_pokemon_plate, Coord(26, 20)))
 
         self._add_trees(objects, (16, 2), (16, 16),step=1, tree_type="tree_s")
-        self._add_bushes_with_plates(objects, (18, 3), (20, 6), evolution_stage=1, plate_probability=0.5)
-        self._add_trees(objects, (18, 7), (21, 7),step = 2, tree_type = "rock_1", direction="vertical")
-    
-        self._add_trees(objects, (18, 8), (18, 12),step = 1, tree_type = "flower_large_blue")
-        self._add_trees(objects, (20, 8), (20, 12),step = 1, tree_type = "flower_large_blue")
+        self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)
         
+        #path after the first bush 
+        self._add_tile_line(objects, 'g_up', start=(18, 8), end=(18, 15))
+        self._add_tile_line(objects, 'g_down', start=(19, 8), end=(19, 15))
+        self.place(objects, 'g_top_left', (18, 8))
+        self.place(objects, 'g_bottom_left', (19, 8))
+        self.place(objects, 'g_top_left', (18, 8))
+        self.place(objects, 'g_bottom_right', (19, 15))
+        self.place(objects, 'g_top_right', (18, 15))
+
+
         building = PokemonCenter(linked_room_str="Pokemon Center")
         objects.append((building, Coord(10, 22)))
         sign = Sign(text="Welcome to the Pokemon Center")
@@ -620,23 +660,63 @@ class PokemonHouse(Map):
         self._add_trees(objects, (5, 12), (16, 12),step = 1, tree_type = "tree_s", direction="vertical")
         self._add_trees(objects, (3, 7), (13, 7),step = 1, tree_type = "tree_s", direction="vertical")
         self._add_trees(objects, (7, 6), (13, 6),step = 1, tree_type = "tree_s", direction="vertical")
-        self._add_bushes_with_plates(objects, (8, 2), (13, 5), evolution_stage=2, plate_probability=0.6)
-        self._add_bushes_with_plates(objects, (3, 12), (4,15), evolution_stage=1, plate_probability=0.6)
-        self._add_bushes_with_plates(objects, (13, 8), (15,11), evolution_stage=1, plate_probability=0.6)
+       
+        
+        #path from pokemon center
+        self.place(objects, 'top_left', (16, 24))
+        self.place(objects, 'top_right', (16, 25))
+        self.place(objects, 'poke_sand', (17, 24))
+        self.place(objects, 'sand_right', (17, 25))
+        self.place(objects, 'bottom_right', (18, 25))
+        self._add_tile_line(objects, 'poke_sand_up', start=(17, 23), end=(17, 18))
+        self._add_tile_line(objects, 'poke_sand_down', start=(18, 24), end=(18, 18))
+        self.place(objects, 'bottom_left', (18, 17))
+        self._add_tile_line(objects, 'sand_left', start=(17, 17), end=(7, 17))
+        self._add_tile_line(objects, 'sand_right', start=(17, 18), end=(7, 18))
+        self.place(objects, 'poke_sand', (17, 18))
+        self.place(objects, 'top_left', (6, 17))
+        self.place(objects, 'top_right', (6, 18))
+        
+        
+        
         sign = Sign(text="Dangerous Pokemon's ahead, continue at your own risk. ")
         objects.append((sign, Coord(5, 16)))
-            
+        self.place(objects, 'g_top_right', (3, 15))
+        self.place(objects, 'g_bottom_right', (4, 15))
+        self._add_tile_line(objects, 'g_up', start=(3, 14), end=(3, 10))
+        self._add_tile_line(objects, 'g_down', start=(4, 14), end=(4, 10))
+        self.place(objects, 'g_top_left', (3, 9))
+        self._add_tile_line(objects, 'g_l', start=(4, 9), end=(13, 9))
+        self._add_tile_line(objects, 'g_r', start=(5, 10), end=(14, 10))
+        self.place(objects, 'g', (4, 10))
+        self.place(objects, 'g_bottom_right', (15, 10))
+        self._add_tile_line(objects, 'g_up', start=(14, 8), end=(14, 4))
+        self._add_tile_line(objects, 'g_down', start=(15, 9), end=(15, 4))
+        self.place(objects, 'g', (14, 9))
+        self.place(objects, 'g_bottom_left', (15, 3))
+        self._add_tile_line(objects, 'g_l', start=(14, 3), end=(8, 3))
+        self._add_tile_line(objects, 'g_r', start=(13, 4), end=(8, 4))
+        self.place(objects, 'g', (14, 4))
+        self.place(objects, 'g_top_left', (8, 3))
+        self.place(objects, 'g_top_right', (8, 4))
+        self._add_trees(objects, (6, 2), (6, 5),step = 1, tree_type = "tree_s")
 
-        
-     
-
-        # Adding bushes and pressure plates 
-
-        #self._add_bushes_with_plates(objects, (20, 16), (22, 19), evolution_stage=2, plate_probability=0.5)
+       
+        #self._add_bushes_with_plates(objects, (8, 2), (13, 5), evolution_stage=2, plate_probability=0.6)
+        #self._add_bushes_with_plates(objects, (3, 12), (4,15), evolution_stage=1, plate_probability=0.6)
+        #self._add_bushes_with_plates(objects, (13, 8), (15,11), evolution_stage=1, plate_probability=0.6)
         self._add_bushes_with_plates(objects, (3, 2), (5, 4), evolution_stage=3, plate_probability=0.5)
         objects.append((MapObject.get_obj('rock_1'), Coord(3, 5)))
         objects.append((MapObject.get_obj('rock_1'), Coord(5, 5)))
-        self._add_trees(objects, (6, 2), (6, 5),step = 1, tree_type = "tree_small_1")
         
         
+               
+       
+        
+
+        
+        
+
+
         return objects
+
