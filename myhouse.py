@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from maps.base import Map
     from tiles.base import MapObject
     from tiles.map_objects import *
+    from tiles.buildings import Building
 
 
 # Our imports   
@@ -40,7 +41,7 @@ class TurnStage(Enum):
      
 # Map objects we added ourselves
 # --------------------------------
-#not needed anymore, simply interact with the prof.
+# not needed anymore, simply interact with the prof.
 class ChoosePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="blue_circle", stepping_text='Choose your starter Pokémon!')
@@ -81,7 +82,7 @@ class ChoosePokemonPlate(PressurePlate):
         player.set_state("active_pokemon", pokemon)  
         player.set_state("pokeballs", [])  
 
-#not needed anymore, now use keybind v     
+# not needed anymore, now use keybind v     
 class DisplayActivePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="red_down_arrow")
@@ -134,14 +135,16 @@ class DisplayActivePokemonPlate(PressurePlate):
             )
         ]
                
-class ChooseDifficultyPlate(PressurePlate):
+class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
     def __init__(self):
         super().__init__(image_name="hal9000", stepping_text="Choose your battle difficulty!")
-        self.__pending_messages: dict[HumanPlayer, list[Message]] = {}
 
     def player_entered(self, player) -> list[Message]:
         current_ai = player.get_state("enemy_ai", None)
         current_difficulty = type(current_ai).__name__.replace("AI", "") if current_ai else "None"
+
+        # Register this plate as the active menu
+        player.set_current_menu(self)
 
         return [
             DialogueMessage(self, player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty.", ""),
@@ -158,21 +161,15 @@ class ChooseDifficultyPlate(PressurePlate):
         ai_class = difficulty_map.get(selected_option)
         if ai_class:
             player.set_state("enemy_ai", ai_class())
-            self.__pending_messages[player] = [
-                # DialogueMessage(self, player, f"Difficulty set to {selected_option}.", ""),
+            player.set_current_menu(None)  # Clear menu so future interactions work
+            return [
+                ServerMessage(player, f"Difficulty set to {selected_option}."),
                 OptionsMessage(self, player, [], destroy=True)
             ]
 
-        return []  # Responses are handled in update()
+        return [ServerMessage(player, "Invalid difficulty selection.")]
 
-    def update(self) -> list[Message]:
-        messages = []
-        for player, pending in list(self.__pending_messages.items()):
-            messages.extend(pending)
-            del self.__pending_messages[player]
-        return messages
-
-#not needed anymore, simply interact with the nurse
+# not needed anymore, simply interact with the nurse
 class HealActivePokemonPlate(PressurePlate):
     def __init__(self):
         super().__init__(image_name="green_circle", stepping_text="Your Pokémon feels refreshed!")
@@ -191,7 +188,7 @@ class HealActivePokemonPlate(PressurePlate):
 
         return [DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", "")]
 
-class PokemonBattlePressurePlate(PressurePlate):
+class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
     def __init__(self, wild_pokemon_name: str):
         super().__init__(image_name="bushh", stepping_text=f"You encountered a wild {wild_pokemon_name}!")
         self.__wild_pokemon_name = wild_pokemon_name
@@ -204,8 +201,9 @@ class PokemonBattlePressurePlate(PressurePlate):
         self.__turn_stage = TurnStage.IDLE
         self.__last_action_time = time.time()
 
-    def select_option(self, player, selected_option: str) -> None:
+    def select_option(self, player, selected_option: str) -> list[Message]:
         self.__current_option = selected_option
+        return []  # actual logic handled in update()
 
     def clear_option(self) -> None:
         self.__current_option = None
@@ -218,6 +216,10 @@ class PokemonBattlePressurePlate(PressurePlate):
         self.__enemy_used_dodge = False
         self.__turn_stage = TurnStage.INTRO
         self.__last_action_time = time.time()
+
+        # Set this plate as the active selection handler
+        player.set_current_menu(self)
+
         return []
 
     def update(self) -> list[Message]:
@@ -355,6 +357,7 @@ class PokemonBattlePressurePlate(PressurePlate):
             messages.append(OptionsMessage(self, self.__player, [], destroy=True))
             messages.append(PokemonBattleMessage(self, self.__player, {}, {}, destroy=True))
             self.__player.set_state("active_pokemon", self.__player_pokemon)
+            self.__player.set_current_menu(None)
             self.__turn_stage = TurnStage.CLEANUP
 
         elif self.__turn_stage == TurnStage.CLEANUP:
@@ -362,16 +365,16 @@ class PokemonBattlePressurePlate(PressurePlate):
 
         return messages
 
+
 class PokemonCenter(Building):
     def __init__(self, linked_room_str: str = "") -> None:
         super().__init__('pokemon_center', door_position=Coord(5, 3), linked_room_str=linked_room_str)
 
                 
 # --------------------------------
-from typing import Literal
-
-class ProfessorOak(NPC):
-    def __init__(self, encounter_text: str = "Welcome to the Kanto Region. Choose your starter Pokémon!", staring_distance: int = 3, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
+class ProfessorOak(NPC, SelectionInterface):
+    def __init__(self, encounter_text: str = "Welcome to the Kanto Region. Choose your starter Pokémon!",
+                 staring_distance: int = 3, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
         super().__init__(
             name="Professor Oak",
             image='prof',
@@ -380,50 +383,61 @@ class ProfessorOak(NPC):
             staring_distance=staring_distance
         )
 
+    def done_talking(self, player) -> bool:
+        """Override to allow re-interaction even after first contact."""
+        return False
+
     def player_interacted(self, player: HumanPlayer) -> list[Message]:
         messages: list[Message] = []
 
-        # Has the player already chosen a starter?
         starter_pokemon = player.get_state("starter_pokemon", None)
+        print(f"[DEBUG] Oak sees starter_pokemon: {starter_pokemon}")
+
         if starter_pokemon:
-            messages.append(DialogueMessage(self, player, f"Welcome back to the Kanto region! How is your {starter_pokemon} doing?", ""))
+            messages.append(ServerMessage(player, f"You have already chosen {starter_pokemon} as your starter pokemon"))
             return messages
 
-        # Intro message
+        # First-time interaction
         messages.append(DialogueMessage(self, player, self._NPC__encounter_text, self.get_image_name()))
 
-        # Give initial items
-        bag = Bag()
-        bag.add_item(PotionFlyweightFactory.get_small_potion())
-        bag.add_item(PotionFlyweightFactory.get_medium_potion())
-        bag.add_item(RegularPokeball())
-        bag.add_item(GreatBall())
-        bag.add_item(MasterBall())
-        player.set_state("bag", bag)
+        # Give starting items only once
+        if player.get_state("starter_items_given", False) is not True:
+            bag = Bag()
+            bag.add_item(PotionFlyweightFactory.get_small_potion())
+            bag.add_item(PotionFlyweightFactory.get_medium_potion())
+            bag.add_item(RegularPokeball())
+            bag.add_item(GreatBall())
+            bag.add_item(MasterBall())
+            player.set_state("bag", bag)
+            player.set_state("starter_items_given", True)
 
-        # Starter options
+        # Set this NPC as the current menu handler
+        player.set_current_menu(self)
+
+        # Starter Pokémon options
         options = [
             {"Charmander": "image/Pokemon/Charmander_front.png"},
             {"Squirtle": "image/Pokemon/Squirtle_front.png"},
             {"Bulbasaur": "image/Pokemon/Bulbasaur_front.png"}
         ]
-
-        # Show starter selection menu
         messages.append(ChooseObjectMessage(self, player, options, window_title="Choose your starter Pokémon!"))
 
         return messages
 
-    def set_choice(self, player: HumanPlayer, choice: str) -> None:
-        pokemon = PokemonFactory.create_pokemon(choice)
+    def select_option(self, player: HumanPlayer, choice: str) -> list[Message]:
+        print(f"[DEBUG] Oak received selected option: {choice}")
 
-        # Save choice
+        pokemon = PokemonFactory.create_pokemon(choice)
         player.set_state("starter_pokemon", pokemon.name)
         player.set_state("active_pokemon", pokemon)
         player.set_state("pokeballs", [])
 
+        player.set_current_menu(None)
 
+        return [ServerMessage(player, f"Excellent choice! Take good care of {pokemon.name}.")]
+        
 
-
+    
 class PokemonHouse(Map):
     def __init__(self) -> None:
         super().__init__(
@@ -577,20 +591,20 @@ class PokemonHouse(Map):
         objects.append((door, Coord(26, 27)))
         
         
-        #pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
-        #objects.append((pokemon_battle_plate, Coord(19, 26)))
+        pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
+        objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        #heal_pokemon_plate = HealActivePokemonPlate()
-        #objects.append((heal_pokemon_plate, Coord(19, 25)))
+        heal_pokemon_plate = HealActivePokemonPlate()
+        objects.append((heal_pokemon_plate, Coord(19, 25)))
         
-        #choose_pokemon_plate = ChoosePokemonPlate()
-        #objects.append((choose_pokemon_plate, Coord(19, 24)))
+        choose_pokemon_plate = ChoosePokemonPlate()
+        objects.append((choose_pokemon_plate, Coord(19, 24)))
         
-        #choose_difficulty_plate = ChooseDifficultyPlate()
-        #objects.append((choose_difficulty_plate, Coord(19, 23)))
+        choose_difficulty_plate = ChooseDifficultyPlate()
+        objects.append((choose_difficulty_plate, Coord(19, 23)))
         
-        #display_active_pokemon_plate = DisplayActivePokemonPlate()
-        #objects.append((display_active_pokemon_plate, Coord(19, 22)))
+        display_active_pokemon_plate = DisplayActivePokemonPlate()
+        objects.append((display_active_pokemon_plate, Coord(19, 22)))
         
        # Create a border of trees
         # Bottom row
@@ -622,7 +636,6 @@ class PokemonHouse(Map):
         objects.append((sign, Coord(26, 2)))
 
         prof = ProfessorOak(
-            encounter_text="Welcome to the Kanto Region, I am Professor Oak. Please step on the blue plate to choose your starter Pokemon. ",
             facing_direction="down",
             staring_distance=3,
         )
