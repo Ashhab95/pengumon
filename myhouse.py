@@ -134,6 +134,26 @@ class DisplayActivePokemonPlate(PressurePlate):
                 window_title="Pokémon Stats"
             )
         ]
+        
+# not needed anymore, simply interact with the nurse
+class HealActivePokemonPlate(PressurePlate):
+    def __init__(self):
+        super().__init__(image_name="green_circle", stepping_text="Your Pokémon feels refreshed!")
+
+    def player_entered(self, player) -> list[Message]:
+        active_pokemon = player.get_state("active_pokemon", None) # get the player's active pokemon
+
+        if active_pokemon is None:
+            return [DialogueMessage(self, player, "You don’t have an active Pokémon to heal.", "")]
+        
+        if active_pokemon.current_health == active_pokemon.max_health:
+            return [DialogueMessage(self, player, "Your Pokémon is already at full health.", "")]
+
+        active_pokemon.current_health = active_pokemon.max_health # fully heal the pokemon
+        player.set_state("active_pokemon", active_pokemon) # update player state with pokemon after healing
+
+        return [DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", "")]
+ 
                
 class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
     def __init__(self):
@@ -147,7 +167,8 @@ class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
         player.set_current_menu(self)
 
         return [
-            DialogueMessage(self, player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty.", ""),
+            ServerMessage(player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty."),
+            # DialogueMessage(self, player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty.", ""),
             OptionsMessage(self, player, ["Easy", "Medium", "Hard"])
         ]
 
@@ -169,24 +190,6 @@ class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
 
         return [ServerMessage(player, "Invalid difficulty selection.")]
 
-# not needed anymore, simply interact with the nurse
-class HealActivePokemonPlate(PressurePlate):
-    def __init__(self):
-        super().__init__(image_name="green_circle", stepping_text="Your Pokémon feels refreshed!")
-
-    def player_entered(self, player) -> list[Message]:
-        active_pokemon = player.get_state("active_pokemon", None) # get the player's active pokemon
-
-        if active_pokemon is None:
-            return [DialogueMessage(self, player, "You don’t have an active Pokémon to heal.", "")]
-        
-        if active_pokemon.current_health == active_pokemon.max_health:
-            return [DialogueMessage(self, player, "Your Pokémon is already at full health.", "")]
-
-        active_pokemon.current_health = active_pokemon.max_health # fully heal the pokemon
-        player.set_state("active_pokemon", active_pokemon) # update player state with pokemon after healing
-
-        return [DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", "")]
 
 class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
     def __init__(self, wild_pokemon_name: str):
@@ -398,7 +401,8 @@ class ProfessorOak(NPC, SelectionInterface):
             return messages
 
         # First-time interaction
-        messages.append(DialogueMessage(self, player, self._NPC__encounter_text, self.get_image_name()))
+        messages.append(ServerMessage(player, self._NPC__encounter_text))
+        # messages.append(DialogueMessage(self, player, self._NPC__encounter_text, ""))
 
         # Give starting items only once
         if player.get_state("starter_items_given", False) is not True:
@@ -545,7 +549,7 @@ class PokemonHouse(Map):
         def view_active_pokemon(player: HumanPlayer) -> list[Message]:
             active_pokemon = player.get_state("active_pokemon", None)
             if not active_pokemon:
-                return [DialogueMessage(self, player, "No active Pokémon found.", "")]
+                return [ServerMessage(player, "No active Pokémon found.")]
 
             name = active_pokemon.name
             level = active_pokemon.level
@@ -590,21 +594,20 @@ class PokemonHouse(Map):
         door = Door('tube', linked_room="Trottier Town")
         objects.append((door, Coord(26, 27)))
         
-        
         pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
         objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        heal_pokemon_plate = HealActivePokemonPlate()
-        objects.append((heal_pokemon_plate, Coord(19, 25)))
+        # heal_pokemon_plate = HealActivePokemonPlate()
+        # objects.append((heal_pokemon_plate, Coord(19, 25)))
         
-        choose_pokemon_plate = ChoosePokemonPlate()
-        objects.append((choose_pokemon_plate, Coord(19, 24)))
+        # choose_pokemon_plate = ChoosePokemonPlate()
+        # objects.append((choose_pokemon_plate, Coord(19, 24)))
         
         choose_difficulty_plate = ChooseDifficultyPlate()
-        objects.append((choose_difficulty_plate, Coord(19, 23)))
+        objects.append((choose_difficulty_plate, Coord(19, 27)))
         
-        display_active_pokemon_plate = DisplayActivePokemonPlate()
-        objects.append((display_active_pokemon_plate, Coord(19, 22)))
+        # display_active_pokemon_plate = DisplayActivePokemonPlate()
+        # objects.append((display_active_pokemon_plate, Coord(19, 22)))
         
        # Create a border of trees
         # Bottom row
