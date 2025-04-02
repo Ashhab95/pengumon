@@ -7,11 +7,12 @@ if TYPE_CHECKING:
     from tiles.base import MapObject
     from tiles.map_objects import *
     from message import *
-    
+
 from .pokemon import PokemonFactory
 from enum import Enum, auto
 import time
 from .enemyAI import *
+from .observers import BattleMessageNotifier 
 
 # Global constants
 PLAYER_CHANCE_TO_DODGE = 0.5
@@ -40,6 +41,11 @@ class PokemonBattleManager:
         self.__turn_stage = TurnStage.INTRO
         self.__current_option = None
         self.__last_action_time = time.time()
+
+        # Observer setup
+        self.__battle_messages: list[Message] = []
+        self.__player_pokemon.add_observer(BattleMessageNotifier(player, self.__battle_messages))
+        self.__enemy_pokemon.add_observer(BattleMessageNotifier(player, self.__battle_messages))
 
     def set_selected_option(self, selected_option: str) -> None:
         self.__current_option = selected_option
@@ -88,6 +94,8 @@ class PokemonBattleManager:
             case TurnStage.CLEANUP:
                 return []
 
+        messages.extend(self.__battle_messages)
+        self.__battle_messages.clear()
         return messages
 
     def _pokemon_data(self, pokemon):

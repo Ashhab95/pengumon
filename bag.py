@@ -1,172 +1,160 @@
 from typing import List, Dict, Any, Optional, Tuple
-from .items import Item, Potion
-from .pokeball import Pokeball
+from .items import Item, Potion, SmallPotion, MediumPotion, LargePotion, RevivePotion
+from .pokeball import Pokeball, RegularPokeball, GreatBall, UltraBall, MasterBall
 from .pokemon import Pokemon
 
 class ItemCompartment:
-    
     def __init__(self, name: str):
         self.name = name
-        self.items: List[Item] = []
-    
-    def add(self, item: Item) -> None:
-        self.items.append(item)
-    
-    def remove(self, index: int) -> Optional[Item]:
-        if 0 <= index < len(self.items):
-            return self.items.pop(index)
+
+    def add(self, item: Item):
+        key = self.get_item_key(item)
+        self._increment(key)
+
+    def remove(self, key: str) -> Optional[Item]:
+        if self._has_item(key):
+            self._decrement(key)
+            return self._make_item(key)
         return None
-    
-    def get(self, index: int) -> Optional[Item]:
-        if 0 <= index < len(self.items):
-            return self.items[index]
-        return None
-    
+
+    def list_items(self) -> List[str]:
+        return [f"{key.replace('_', ' ').title()} x{count}" for key, count in self._get_counts().items() if count > 0]
+
     def count(self) -> int:
-        return len(self.items)
-    
-    def list_items(self) -> List[Tuple[int, Item]]:
-        return [(i, item) for i, item in enumerate(self.items)]
-    
+        return sum(self._get_counts().values())
+
     def __str__(self) -> str:
-        if not self.items:
-            return f"{self.name}: Empty"
-        
-        result = f"{self.name} ({len(self.items)}):\n"
-        for i, item in enumerate(self.items):
-            result += f"  {i+1}. {item.get_name()}\n"
-        return result
+        return f"{self.name} compartment"
+
+    def get_item_key(self, item: Item) -> str:
+        raise NotImplementedError
+
+    def _increment(self, key: str):
+        raise NotImplementedError
+
+    def _decrement(self, key: str):
+        raise NotImplementedError
+
+    def _has_item(self, key: str) -> bool:
+        raise NotImplementedError
+
+    def _make_item(self, key: str) -> Optional[Item]:
+        raise NotImplementedError
+
+    def _get_counts(self) -> Dict[str, int]:
+        raise NotImplementedError
+
+
+class PotionCompartment(ItemCompartment):
+    def __init__(self):
+        super().__init__("Potions")
+        self._counts = {
+            "small": 0,
+            "medium": 0,
+            "large": 0,
+            "small_revive": 0,
+            "medium_revive": 0,
+            "large_revive": 0
+        }
+
+    def get_item_key(self, item: Item) -> str:
+        if isinstance(item, SmallPotion) and item.is_revive(): return "small_revive"
+        elif isinstance(item, MediumPotion) and item.is_revive(): return "medium_revive"
+        elif isinstance(item, LargePotion) and item.is_revive(): return "large_revive"
+        elif isinstance(item, SmallPotion): return "small"
+        elif isinstance(item, MediumPotion): return "medium"
+        elif isinstance(item, LargePotion): return "large"
+        raise ValueError("Unsupported potion type")
+
+    def _increment(self, key: str): self._counts[key] += 1
+    def _decrement(self, key: str): self._counts[key] -= 1
+    def _has_item(self, key: str) -> bool: return self._counts.get(key, 0) > 0
+
+    def _make_item(self, key: str) -> Optional[Potion]:
+        if key == "small": return SmallPotion()
+        elif key == "medium": return MediumPotion()
+        elif key == "large": return LargePotion()
+        elif key == "small_revive": return SmallPotion(revive=True)
+        elif key == "medium_revive": return MediumPotion(revive=True)
+        elif key == "large_revive": return LargePotion(revive=True)
+        return None
+
+    def _get_counts(self) -> Dict[str, int]:
+        return self._counts
+
+
+class PokeballCompartment(ItemCompartment):
+    def __init__(self):
+        super().__init__("Empty Pokeballs")
+        self._counts = {"pokeball": 0, "greatball": 0, "ultraball": 0, "masterball": 0}
+
+    def get_item_key(self, item: Item) -> str:
+        if isinstance(item, RegularPokeball): return "pokeball"
+        elif isinstance(item, GreatBall): return "greatball"
+        elif isinstance(item, UltraBall): return "ultraball"
+        elif isinstance(item, MasterBall): return "masterball"
+        raise ValueError("Unsupported pokeball type")
+
+    def _increment(self, key: str): self._counts[key] += 1
+    def _decrement(self, key: str): self._counts[key] -= 1
+    def _has_item(self, key: str) -> bool: return self._counts.get(key, 0) > 0
+
+    def _make_item(self, key: str) -> Optional[Pokeball]:
+        if key == "pokeball": return RegularPokeball()
+        elif key == "greatball": return GreatBall()
+        elif key == "ultraball": return UltraBall()
+        elif key == "masterball": return MasterBall()
+        return None
+
+    def _get_counts(self) -> Dict[str, int]:
+        return self._counts
+
+
+class PokemonCompartment:
+    def __init__(self):
+        self.name = "Your Pokemon"
+        self.pokemon_balls: List[Pokeball] = []
+
+    def add(self, pokeball: Pokeball):
+        self.pokemon_balls.append(pokeball)
+
+    def remove(self, index: int) -> Optional[Pokeball]:
+        if 0 <= index < len(self.pokemon_balls):
+            return self.pokemon_balls.pop(index)
+        return None
+
+    def get(self, index: int) -> Optional[Pokeball]:
+        if 0 <= index < len(self.pokemon_balls):
+            return self.pokemon_balls[index]
+        return None
+
+    def list_items(self) -> List[Tuple[int, Pokeball]]:
+        return [(i, ball) for i, ball in enumerate(self.pokemon_balls)]
+
+    def count(self) -> int:
+        return len(self.pokemon_balls)
+
+    def __str__(self):
+        return f"{self.name} compartment"
+
 
 class Bag:
     def __init__(self):
-        self.compartments: Dict[str, ItemCompartment] = {
-            "potion": ItemCompartment("potion"),
-            "pokeballs": ItemCompartment("Empty Pokeballs"),
-            "pokemon": ItemCompartment("Your Pokemon")
-        }
-    
-    def _has_active_pokemon(self) -> bool:
-        """Check if there is an active Pokemon in the bag"""
-        return any(isinstance(ball, Pokeball) and ball.is_active_pokemon() 
-                  for ball in self.compartments["pokemon"].items)
-    
-    def add_item(self, item: Item) -> None:
-        if isinstance(item, Potion):
-            self.compartments["potion"].add(item)
-        elif isinstance(item, Pokeball):
-            if item.is_empty():
-                self.compartments["pokeballs"].add(item)
-            else:
-                self.compartments["pokemon"].add(item)
-                
-                # If this is our first Pokemon, make it the active one
-                if not self._has_active_pokemon():
-                    item.set_active(True)
+        self.potions = PotionCompartment()
+        self.pokeballs = PokeballCompartment()
+        self.pokemon = PokemonCompartment()
 
-    
-    def open_bag(self) -> Dict[str, List[Tuple[int, Item]]]:
-        result = {}
-        for name, compartment in self.compartments.items():
-            result[name] = compartment.list_items()
-        return result
-    
-    def select_item(self, compartment_name: str, index: int) -> Optional[Item]:
-        if compartment_name in self.compartments:
-            return self.compartments[compartment_name].get(index)
-        return None
-    
-    def remove_item(self, compartment_name: str, index: int) -> Optional[Item]:
-        if compartment_name in self.compartments:
-            return self.compartments[compartment_name].remove(index)
-        return None
-    
-    def use_potion(self, index: int, target_pokemon: Pokemon) -> Dict[str, Any]:
-        item = self.select_item("potion", index)
-        if item and isinstance(item, Potion):
-            result = item.use(target_pokemon)
-            if result["success"]:
-                self.remove_item("potion", index)
-            return result
-        return {
-            "success": False,
-            "message": "Invalid potion item."
-        }
-    
-    def use_pokeball(self, index: int, wild_pokemon: Pokemon) -> Dict[str, Any]:
-        pokeball = self.select_item("pokeballs", index)
-        if pokeball and isinstance(pokeball, Pokeball):
-            result = pokeball.use(wild_pokemon)
-            if result["success"]:
-                self.remove_item("pokeballs", index)
-                self.compartments["pokemon"].add(pokeball)
-                
-                if not self._has_active_pokemon():
-                    pokeball.set_active(True)
-            return result
-        return {
-            "success": False,
-            "message": "Invalid Pokeball."
-        }
-    
-    def switch_pokemon(self, index: int) -> Dict[str, Any]:
-        pokeball = self.select_item("pokemon", index)
-        if pokeball and isinstance(pokeball, Pokeball) and not pokeball.is_empty():
-            for ball in self.compartments["pokemon"].items:
-                if isinstance(ball, Pokeball) and ball.is_active_pokemon():
-                    ball.set_active(False)
-            
-            pokeball.set_active(True)
-            
-            pokemon = pokeball.get_pokemon()
-            if pokemon:
-                return {
-                    "success": True,
-                    "message": f"Switched active Pokemon to {pokemon.name}!",
-                    "pokemon": pokemon
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": "The selected Pokeball doesn't contain a Pokemon!"
-                }
-        return {
-            "success": False,
-            "message": "Invalid Pokemon selection."
-        }
-    
-    def get_active_pokemon(self) -> Optional[Pokemon]:
-        for ball in self.compartments["pokemon"].items:
-            if isinstance(ball, Pokeball) and ball.is_active_pokemon():
-                return ball.get_pokemon()
-        return None
-    
-    def get_all_pokemon(self) -> List[Pokemon]:
-        pokemon_list = []
-        for item in self.compartments["pokemon"].items:
-            if isinstance(item, Pokeball) and not item.is_empty():
-                pokemon = item.get_pokemon()
-                if pokemon:
-                    pokemon_list.append(pokemon)
-        return pokemon_list
-    
-    def count_items(self, compartment_name: str) -> int:
-        if compartment_name in self.compartments:
-            return self.compartments[compartment_name].count()
-        return 0
-    
-    def __str__(self) -> str:
-        result = "Bag Contents:\n"
-        for compartment in self.compartments.items():
-            result += str(compartment) + "\n"
-        
-        active_pokemon = self.get_active_pokemon()
-        if active_pokemon:
-            result += f"Active Pokemon: {active_pokemon.name} (HP: {active_pokemon.current_health}/{active_pokemon.max_health})\n"
-        else:
-            result += "Active Pokemon: None\n"
-            
-        return result
-    
+    def __str__(self):
+        parts = [
+            str(self.potions),
+            str(self.pokeballs),
+            str(self.pokemon)
+        ]
+        return "Bag Contents:\n" + "\n".join(parts)
 
-
-    
+    def list_all_items(self) -> Dict[str, List[str]]:
+        return {
+            "potions": self.potions.list_items(),
+            "pokeballs": self.pokeballs.list_items(),
+            "pokemon": [f"{i}: {ball}" for i, ball in self.pokemon.list_items()]
+        }

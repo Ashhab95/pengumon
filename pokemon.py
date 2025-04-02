@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional, Any
 from .pokedex import pokedex, PokemonType
+from .observers import HealthObserver
 
 # Constants
 class GameConstants:
@@ -119,19 +120,40 @@ class Pokemon:
         self.level = int(data['level'])
         self.xp = int(data['xp'])
         self.known_attacks = data['attacks'][:]
-        
+        self._observers: list[HealthObserver] = []  # Health observer list
+
         if name in ["Charmander", "Squirtle", "Bulbasaur"]:
             self.evolution_state = BaseEvolutionState()
         elif name in ["Charmeleon", "Wartortle", "Ivysaur"]:
             self.evolution_state = SecondEvolutionState()
         elif name in ["Charizard", "Blastoise", "Venusaur"]:
             self.evolution_state = FinalEvolutionState()
-        
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state.pop('_observers', None)  # Remove unpickleable observers
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._observers = []  # Restore empty observer list
+
+    def add_observer(self, observer: HealthObserver):
+        """Register a new observer that will be notified on health changes."""
+        self._observers.append(observer)
+
+    def notify_observers(self, old_hp: int, new_hp: int):
+        """Notify all registered observers of a health change."""
+        for observer in self._observers:
+            observer.on_health_changed(self, old_hp, new_hp)
+
     def is_fainted(self):
         return self.current_health <= 0
 
     def take_damage(self, damage):
+        old_hp = self.current_health
         self.current_health = max(0, self.current_health - damage)
+        self.notify_observers(old_hp, self.current_health)
 
     def attack(self, attack_index, target):
         # Template method pattern
@@ -144,7 +166,7 @@ class Pokemon:
         # Calculate damage multiplier based on evolution state
         multiplier = self.evolution_state.get_type_multiplier(self.p_type, target.p_type)
         final_damage = int(base_damage * multiplier)
-        
+
         target.take_damage(final_damage)
 
         result = {
@@ -160,7 +182,7 @@ class Pokemon:
             evolved_pokemon = self.level_up_check()
             if evolved_pokemon:
                 result["evolved"] = evolved_pokemon
-                
+
         return result
 
     def level_up_check(self):
@@ -174,7 +196,7 @@ class Pokemon:
 
             hp_increase = self.evolution_state.hp_increase()
             attack_increase = self.evolution_state.attack_increase()
-            
+
             self.max_health += hp_increase
             self.current_health = self.max_health
             for attack in self.known_attacks:
@@ -186,18 +208,19 @@ class Pokemon:
                     return self.evolve(next_evolution)
 
         return None
-    
+
     def evolve(self, evolution_name: str) -> 'Pokemon':
         """Evolve this Pokemon to the next form"""
         evolved_pokemon = Pokemon(evolution_name)
-        
+
         # Update evolution state based on current state
         if isinstance(self.evolution_state, BaseEvolutionState):
             evolved_pokemon.evolution_state = SecondEvolutionState()
         elif isinstance(self.evolution_state, SecondEvolutionState):
             evolved_pokemon.evolution_state = FinalEvolutionState()
-            
+
         return evolved_pokemon
+
 
 # Pokemon Factory
 class PokemonFactory:

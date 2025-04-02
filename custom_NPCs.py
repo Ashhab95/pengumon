@@ -28,21 +28,8 @@ class ProfessorOak(NPC, SelectionInterface):
         """Override to allow re-interaction even after first contact."""
         return False
 
-    def player_interacted(self, player: HumanPlayer) -> list[Message]:
-        messages: list[Message] = []
-
-        starter_pokemon = player.get_state("starter_pokemon", None)
-        print(f"[DEBUG] Oak sees starter_pokemon: {starter_pokemon}")
-
-        if starter_pokemon:
-            messages.append(ServerMessage(player, f"You have already chosen {starter_pokemon} as your starter pokemon"))
-            return messages
-
-        # First-time interaction
-        messages.append(ServerMessage(player, self._NPC__encounter_text))
-        # messages.append(DialogueMessage(self, player, self._NPC__encounter_text, ""))
-
-        # Give starting items only once
+    def give_starter_items(self, player: HumanPlayer) -> None:
+        """Gives starting items to the player if not already given."""
         if player.get_state("starter_items_given", False) is not True:
             bag = Bag()
             bag.add_item(PotionFlyweightFactory.get_small_potion())
@@ -53,7 +40,19 @@ class ProfessorOak(NPC, SelectionInterface):
             player.set_state("bag", bag)
             player.set_state("starter_items_given", True)
 
-        # Set this NPC as the current menu handler
+    def player_interacted(self, player: HumanPlayer) -> list[Message]:
+        messages: list[Message] = []
+
+        starter_pokemon = player.get_state("starter_pokemon", None)
+
+        if starter_pokemon:
+            messages.append(ServerMessage(player, f"You have already chosen {starter_pokemon} as your starter Pokémon!"))
+            return messages
+
+        # First-time interaction
+        messages.append(ServerMessage(player, self._NPC__encounter_text))
+
+        # Set Professor Oak as the current menu handler
         player.set_current_menu(self)
 
         # Starter Pokémon options
@@ -67,17 +66,19 @@ class ProfessorOak(NPC, SelectionInterface):
         return messages
 
     def select_option(self, player: HumanPlayer, choice: str) -> list[Message]:
-        print(f"[DEBUG] Oak received selected option: {choice}")
-
         pokemon = PokemonFactory.create_pokemon(choice)
         player.set_state("starter_pokemon", pokemon.name)
         player.set_state("active_pokemon", pokemon)
         player.set_state("pokeballs", [])
 
-        player.set_current_menu(None)
+        # Give starter items after selection
+        self.give_starter_items(player)
+
+        player.set_current_menu(None) # clear menu handler
 
         return [ServerMessage(player, f"Excellent choice! Take good care of {pokemon.name}.")]
-    
+
+
     
     
 class Nurse(NPC):
