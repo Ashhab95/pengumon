@@ -7,48 +7,13 @@ if TYPE_CHECKING:
     from tiles.base import MapObject
     from tiles.map_objects import *
    
-
-
-
-class Nurse(NPC):
-    def __init__(self, encounter_text: str, staring_distance: int = 3) -> None:
-        super().__init__(
-            name="Nurse Joy",
-            image='joy3',
-            encounter_text=encounter_text,
-            facing_direction='down',
-            staring_distance=staring_distance
-        )
-    def player_interacted(self, player: HumanPlayer) -> list[Message]:
-        messages: list[Message] = []
-
-        # Initial dialogue
-        messages.append(DialogueMessage(self, player, self._NPC__encounter_text, self.get_image_name()))
-
-        # Get active Pokémon
-        active_pokemon = player.get_state("active_pokemon", None)
-        if active_pokemon is None:
-            messages.append(DialogueMessage(self, player, "You don’t have a Pokémon to heal.", ""))
-            return messages
-
-        if active_pokemon.current_health == active_pokemon.max_health:
-            messages.append(DialogueMessage(self, player, "Your Pokémon is already at full health.", ""))
-            return messages
-
-        # Heal the Pokémon
-        active_pokemon.current_health = active_pokemon.max_health
-        player.set_state("active_pokemon", active_pokemon)
-        messages.append(DialogueMessage(self, player, f"{active_pokemon.name} was fully healed!", ""))
-
-        return messages
-
-
+from .custom_NPCs import Nurse
 
 class PokemonCenter(Map):
     def __init__(self) -> None:
         super().__init__(
             name="Pokemon Center",
-            description="Welcome to the Pokemon Center",
+            description="Welcome to the Pokémon Center",
             size=(15, 15),
             entry_point=Coord(13, 7),
             background_tile_image='wood_brown',
@@ -96,6 +61,7 @@ class PokemonCenter(Map):
 
         keybinds["v"] = view_active_pokemon
         return keybinds
+    
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
 
@@ -117,26 +83,11 @@ class PokemonCenter(Map):
         objects.append((MapObject.get_obj('sofa'), Coord(11, 11)))
         
         nurse = Nurse(
-            encounter_text="Hello I am Nurse Joy, Please allow me to heal your active pokemon!",
+            encounter_text="Hello, I am Nurse Joy, Allow me to heal your active Pokémon!",
             staring_distance=3,
         )
-        nurse1 = Nurse(
-            encounter_text="Did you know that water type has a type advantage of fire type?",
-            staring_distance=3,
-        )
-        nurse2 = Nurse(
-            encounter_text="Always make sure to carry potions in order to take care of your pokemon during battles!",
-            staring_distance=3,
-        )
+        
         objects.append((nurse, Coord(2, 5)))
-        objects.append((nurse1, Coord(7, 3)))
-        objects.append((nurse2, Coord(10, 3)))
-        
-
-        #need to fix nurse facing
-        
-        
-
 
         return objects
 
