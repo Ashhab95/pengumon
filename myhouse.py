@@ -179,20 +179,14 @@ class ExampleHouse(Map):
         door = Door('tube', linked_room="Trottier Town")
         objects.append((door, Coord(26, 27)))
         
+        switch_plate = SwitchActivePokemonPlate()
+        objects.append((switch_plate, Coord(19, 25)))
+        
         pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
         objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        # heal_pokemon_plate = HealActivePokemonPlate()
-        # objects.append((heal_pokemon_plate, Coord(19, 25)))
-        
-        # choose_pokemon_plate = ChoosePokemonPlate()
-        # objects.append((choose_pokemon_plate, Coord(19, 24)))
-        
         choose_difficulty_plate = ChooseDifficultyPlate()
         objects.append((choose_difficulty_plate, Coord(19, 27)))
-        
-        # display_active_pokemon_plate = DisplayActivePokemonPlate()
-        # objects.append((display_active_pokemon_plate, Coord(19, 22)))
         
        # Create a border of trees
         # Bottom row
@@ -228,9 +222,6 @@ class ExampleHouse(Map):
             staring_distance=3,
         )
         objects.append((prof, Coord(25, 24)))
-
-        #choose_pokemon_plate = ChoosePokemonPlate()
-        #objects.append((choose_pokemon_plate, Coord(26, 20)))
 
         self._add_trees(objects, (16, 2), (16, 16),step=1, tree_type="tree_s")
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)

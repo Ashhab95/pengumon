@@ -41,6 +41,18 @@ class ProfessorOak(NPC, SelectionInterface):
             bag.pokeballs.add(RegularPokeball())
             bag.pokeballs.add(GreatBall())
             bag.pokeballs.add(MasterBall())
+            
+            # Add a secondary pokemon for testing
+            pokemon = PokemonFactory.create_pokemon("Squirtle")
+            pokeball = RegularPokeball()
+            pokeball.add(pokemon)
+            bag.pokemon.add(pokeball)
+            
+            # Add a secondary pokemon for testing
+            pokemon = PokemonFactory.create_pokemon("Bulbasaur")
+            pokeball = RegularPokeball()
+            pokeball.add(pokemon)
+            bag.pokemon.add(pokeball)
 
             # Attach the new bag to player
             player.set_state("bag", bag)

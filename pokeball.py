@@ -29,7 +29,32 @@ class Pokeball(Item):
             self.captured_pokemon = pokemon
             return True
         return False
+    
+    def add(self, pokemon: Pokemon) -> bool:
+        """Add a Pokémon to the Pokéball, used for testing purposes"""
+        if self.is_empty():
+            self.captured_pokemon = pokemon
+            return True
+        return False
 
+    # Methods we are not overriding
+    def get_health(self) -> str:
+        """Get the health of the Pokémon inside the Pokéball"""
+        if self.is_empty():
+            return "Empty"
+        return f"{self.captured_pokemon.current_health}/{self.captured_pokemon.max_health}"
+    
+    def get_level(self) -> str:
+        """Get the level of the Pokémon inside the Pokéball"""
+        if self.is_empty():
+            return "Empty"
+        return f"{self.captured_pokemon.level}"
+    
+    def get_type(self) -> str:
+        """Get the type of the Pokémon inside the Pokéball"""
+        if self.is_empty():
+            return "Empty"
+        return self.captured_pokemon.p_type
     
     def is_empty(self) -> bool:
         return self.captured_pokemon is None

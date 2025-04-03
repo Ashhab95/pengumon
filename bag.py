@@ -88,6 +88,7 @@ class PokeballCompartment(ItemCompartment):
         super().__init__("Empty Pokeballs")
         self._counts = {"pokeball": 0, "greatball": 0, "ultraball": 0, "masterball": 0}
 
+    # Idk how useful this function will be
     def get_item_key(self, item: Item) -> str:
         if isinstance(item, RegularPokeball): return "pokeball"
         elif isinstance(item, GreatBall): return "greatball"
@@ -95,9 +96,14 @@ class PokeballCompartment(ItemCompartment):
         elif isinstance(item, MasterBall): return "masterball"
         raise ValueError("Unsupported pokeball type")
 
-    def _increment(self, key: str): self._counts[key] += 1
-    def _decrement(self, key: str): self._counts[key] -= 1
-    def _has_item(self, key: str) -> bool: return self._counts.get(key, 0) > 0
+    def _increment(self, key: str) -> None: 
+        self._counts[key] += 1 
+        
+    def _decrement(self, key: str) -> None: 
+        self._counts[key] -= 1
+        
+    def _has_item(self, key: str) -> bool: 
+        return self._counts[key] > 0
 
     def _make_item(self, key: str) -> Optional[Pokeball]:
         if key == "pokeball": return RegularPokeball()
@@ -110,51 +116,85 @@ class PokeballCompartment(ItemCompartment):
         return self._counts
 
 
-class PokemonCompartment:
-    def __init__(self):
-        self.name = "Your Pokemon"
-        self.pokemon_balls: List[Pokeball] = []
+class PokemonRoster:
+    MAX_CAPACITY = 5 # 5 in the roster in pokeballs + user gets one active pokemon
 
-    def add(self, pokeball: Pokeball):
-        self.pokemon_balls.append(pokeball)
+    def __init__(self):
+        self.stored_pokemon: List[Pokeball] = []
+
+    def add(self, pokeball: Pokeball) -> bool:
+        """ Add a captured Pokémon to the compartment."""
+        if pokeball.is_empty():
+            return False # empty Pokeball cannot be added to this compartment
+        
+        if self.is_full():
+            return False  # at capacity
+        
+        self.stored_pokemon.append(pokeball)
+        return True
+
+    def is_full(self) -> bool:
+        """Returns True if the compartment is full."""
+        return len(self.stored_pokemon) >= self.MAX_CAPACITY
 
     def remove(self, index: int) -> Optional[Pokeball]:
-        if 0 <= index < len(self.pokemon_balls):
-            return self.pokemon_balls.pop(index)
+        """Remove a Pokémon from the compartment by index."""
+        if 0 <= index < len(self.stored_pokemon):
+            return self.stored_pokemon.pop(index)
+        return None # if index is out of range
+    
+    def list_pokemon(self) -> List[Tuple[int, str]]:
+        """
+        List all stored Pokémon in the compartment along with their attributes.
+
+        Returns:
+            A list of tuples where each tuple contains:
+                - the index of the pokeball
+                - a string description of pokemon inside:
+                    - Name, HP, Level, Type
+        """
+        detailed_list = []
+
+        for i, ball in enumerate(self.stored_pokemon):
+            name = ball.get_name()
+            health = ball.get_health()
+            level = ball.get_level()
+            ptype = ball.get_type()
+
+            description = f"{name} | HP: {health} | Lv: {level} | Type: {ptype}"
+            detailed_list.append((i, description))
+
+        return detailed_list
+    
+    def get_available_pokemon(self) -> Optional[List[Tuple[int, Pokeball]]]:
+        """
+        Returns:
+            A list of tuples (index, Pokéball) where each Pokéball contains a
+            non-fainted Pokémon, or None if there are no available Pokémon.
+        """
+        available = []
+
+        for i, ball in enumerate(self.stored_pokemon):
+            if not ball.is_pokemon_fainted():
+                available.append((i, ball))
+
+        return available if available else None
+    
+    def switch_pokemon(self, pokemon: Pokemon, index: int) -> Optional[Pokemon]:
+        """
+        Swap the given Pokémon with the Pokémon in Pokéball at specified index.
+
+        Returns:
+            Pokémon that was previously stored at that index,
+            or None if the index is invalid.
+        """
+        if 0 <= index < len(self.stored_pokemon):
+            return self.stored_pokemon[index].switch_pokemon(pokemon)
         return None
-
-    def get(self, index: int) -> Optional[Pokeball]:
-        if 0 <= index < len(self.pokemon_balls):
-            return self.pokemon_balls[index]
-        return None
-
-    def list_items(self) -> List[Tuple[int, Pokeball]]:
-        return [(i, ball) for i, ball in enumerate(self.pokemon_balls)]
-
-    def count(self) -> int:
-        return len(self.pokemon_balls)
-
-    def __str__(self):
-        return f"{self.name} compartment"
 
 
 class Bag:
     def __init__(self):
         self.potions = PotionCompartment()
         self.pokeballs = PokeballCompartment()
-        self.pokemon = PokemonCompartment()
-
-    def __str__(self):
-        parts = [
-            str(self.potions),
-            str(self.pokeballs),
-            str(self.pokemon)
-        ]
-        return "Bag Contents:\n" + "\n".join(parts)
-
-    def list_all_items(self) -> Dict[str, List[str]]:
-        return {
-            "potions": self.potions.list_items(),
-            "pokeballs": self.pokeballs.list_items(),
-            "pokemon": [f"{i}: {ball}" for i, ball in self.pokemon.list_items()]
-        }
+        self.pokemon = PokemonRoster()
