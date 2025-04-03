@@ -256,13 +256,13 @@ class ExampleHouse(Map):
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)
         
         #path after the first bush 
-        self._add_tile_line(objects, 'g_up', start=(18, 8), end=(18, 15))
-        self._add_tile_line(objects, 'g_down', start=(19, 8), end=(19, 15))
-        self.place(objects, 'g_top_left', (18, 8))
-        self.place(objects, 'g_bottom_left', (19, 8))
-        self.place(objects, 'g_top_left', (18, 8))
-        self.place(objects, 'g_bottom_right', (19, 15))
-        self.place(objects, 'g_top_right', (18, 15))
+        self._add_tile_line(objects, 'g_up', start=(19, 9), end=(19, 14))
+        self._add_tile_line(objects, 'g_down', start=(20, 9), end=(20, 14))
+        self.place(objects, 'g_top_left', (19, 8))
+        self.place(objects, 'g_bottom_left', (20, 8))
+        self.place(objects, 'g_top_left', (19, 8))
+        self.place(objects, 'g_bottom_right', (20, 15))
+        self.place(objects, 'g_top_right', (19, 15))
 
 
         
