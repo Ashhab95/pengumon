@@ -9,6 +9,12 @@ if TYPE_CHECKING:
    
 from .custom_NPCs import Nurse
 
+
+class PokeCounter(Counter):
+    def __init__(self, npc: "NPC") -> None:
+        super().__init__("f", npc)
+
+
 class PokemonCenter(Map):
     def __init__(self) -> None:
         super().__init__(
@@ -16,7 +22,7 @@ class PokemonCenter(Map):
             description="Welcome to the Pokémon Center",
             size=(15, 15),
             entry_point=Coord(13, 7),
-            background_tile_image='wood_brown',
+            background_tile_image='poke_center_tile',
         )
     def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
         keybinds = super()._get_keybinds()
@@ -66,28 +72,39 @@ class PokemonCenter(Map):
         objects: list[tuple[MapObject, Coord]] = []
 
         # add a door
-        door = Door('int_entrance', linked_room="Pokemon House")
+        door = Door('mat', linked_room="Pokemon House")
         objects.append((door, Coord(14, 7)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 0)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 1)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 2)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 3)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 11)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 12)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 13)))
+        objects.append((MapObject.get_obj('wall'), Coord(0, 14)))
+        #objects.append((MapObject.get_obj('l'), Coord(0, 4)))
 
-        objects.append((MapObject.get_obj('counter_l'), Coord(0, 1)))
-        objects.append((MapObject.get_obj('counter_r'), Coord(0, 7)))
 
-        objects.append((MapObject.get_obj('counter_u'), Coord(4, 0)))
-        objects.append((MapObject.get_obj('counter_d'), Coord(8, 0)))
-        objects.append((MapObject.get_obj('sofa'), Coord(5, 11)))
-        objects.append((MapObject.get_obj('table'), Coord(6, 12)))
-        objects.append((MapObject.get_obj('sofa'), Coord(7, 11)))
-
-        objects.append((MapObject.get_obj('sofa'), Coord(9, 11)))
-        objects.append((MapObject.get_obj('table'), Coord(10, 12)))
-        objects.append((MapObject.get_obj('sofa'), Coord(11, 11)))
-        
         nurse = Nurse(
             encounter_text="Hello, I am Nurse Joy, Allow me to heal your active Pokémon!",
-            staring_distance=3,
+            staring_distance=1,
         )
+        objects.append((nurse, Coord(1, 7)))
+        main_counter = PokeCounter(nurse)
+        objects.append((main_counter, Coord(0, 4)))
+        objects.append((MapObject.get_obj('c_l'), Coord(6, 0)))
+        objects.append((MapObject.get_obj('sofa_table'), Coord(5, 11)))
+        objects.append((MapObject.get_obj('sofa_table'), Coord(10, 11)))
+        objects.append((MapObject.get_obj('sofa_table_2'), Coord(11, 0)))
+        objects.append((MapObject.get_obj('bookshelf'), Coord(1, 0)))
+        objects.append(((MapObject('poke_floor', passable=True)), Coord(7,6)))
+        objects.append(((MapObject('shadow', passable=True)), Coord(4,4)))
         
-        objects.append((nurse, Coord(2, 5)))
+        
+        
+       
+        
+        
 
         return objects
 

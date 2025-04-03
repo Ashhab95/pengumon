@@ -82,10 +82,10 @@ class ProfessorOak(NPC, SelectionInterface):
     
     
 class Nurse(NPC):
-    def __init__(self, encounter_text: str, staring_distance: int = 3) -> None:
+    def __init__(self, encounter_text: str, staring_distance: int = 1) -> None:
         super().__init__(
             name="Nurse Joy",
-            image='joy3',
+            image='joy5',
             encounter_text=encounter_text,
             facing_direction='down',
             staring_distance=staring_distance

@@ -25,7 +25,7 @@ from .custom_NPCs import ProfessorOak
 
 class PokemonCenter(Building):
     def __init__(self, linked_room_str: str = "") -> None:
-        super().__init__('pokemon_center', door_position=Coord(5, 3), linked_room_str=linked_room_str)
+        super().__init__('p1', door_position=Coord(4, 2), linked_room_str=linked_room_str)
 
             
 # class ProfessorOak(NPC, SelectionInterface):
@@ -313,10 +313,7 @@ class PokemonHouse(Map):
         self.place(objects, 'g_top_right', (18, 15))
 
 
-        building = PokemonCenter(linked_room_str="Pokemon Center")
-        objects.append((building, Coord(10, 22)))
-        sign = Sign(text="Welcome to the Pokemon Center")
-        objects.append((sign, Coord(15, 21)))
+        
         self._add_bushes_with_plates(objects, (7, 22), (9, 27), evolution_stage=1, plate_probability=0.4)
         self._add_bushes_with_plates(objects, (3, 22), (6, 27), evolution_stage=2, plate_probability=0.7)
         objects.append((MapObject.get_obj('flower_small_red'), Coord(3, 21)))
@@ -330,15 +327,20 @@ class PokemonHouse(Map):
         self._add_trees(objects, (3, 7), (13, 7),step = 1, tree_type = "tree_s", direction="vertical")
         self._add_trees(objects, (7, 6), (13, 6),step = 1, tree_type = "tree_s", direction="vertical")
        
-        
+        building = PokemonCenter(linked_room_str="Pokemon Center")
+        objects.append((building, Coord(11, 23)))
+        sign = Sign(text="Welcome to the Pokemon Center")
+        objects.append((sign, Coord(15, 23)))
         #path from pokemon center
         self.place(objects, 'top_left', (16, 24))
-        self.place(objects, 'top_right', (16, 25))
+        self.place(objects, 'poke_sand_up', (16, 25))
+        self.place(objects, 'top_right', (16, 26))
         self.place(objects, 'poke_sand', (17, 24))
-        self.place(objects, 'sand_right', (17, 25))
-        self.place(objects, 'bottom_right', (18, 25))
+        self.place(objects, 'poke_sand', (17, 25))
+        self.place(objects, 'sand_right', (17, 26))
+        self.place(objects, 'bottom_right', (18, 26))
         self._add_tile_line(objects, 'poke_sand_up', start=(17, 23), end=(17, 18))
-        self._add_tile_line(objects, 'poke_sand_down', start=(18, 24), end=(18, 18))
+        self._add_tile_line(objects, 'poke_sand_down', start=(18, 25), end=(18, 18))
         self.place(objects, 'bottom_left', (18, 17))
         self._add_tile_line(objects, 'sand_left', start=(17, 17), end=(7, 17))
         self._add_tile_line(objects, 'sand_right', start=(17, 18), end=(7, 18))
@@ -347,6 +349,13 @@ class PokemonHouse(Map):
         self.place(objects, 'top_right', (6, 18))
         
         
+
+        self.place(objects, 'g_top_right', (10, 27))
+        self.place(objects, 'g_bottom_right', (11, 27))
+        self._add_tile_line(objects, 'g', start=(10, 26), end=(10, 23))
+        self._add_tile_line(objects, 'g', start=(11, 26), end=(11, 23))
+        self.place(objects, 'g_top_left', (10, 22))
+        self.place(objects, 'g_bottom_left', (11, 22))
         
         sign = Sign(text="Dangerous Pokemon's ahead, continue at your own risk. ")
         objects.append((sign, Coord(5, 16)))
