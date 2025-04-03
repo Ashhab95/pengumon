@@ -25,6 +25,7 @@ class TurnStage(Enum):
     INTRO = auto()
     PLAYER_TURN = auto()
     AWAIT_INPUT = auto()
+    AWAIT_SWITCH = auto()
     ENEMY_WAIT = auto()
     ENEMY_TURN = auto()
     END = auto()
@@ -36,11 +37,11 @@ class PokemonBattleManager:
         self.__player = player
         self.__player_pokemon = player.get_state("active_pokemon", None)
         self.__enemy_pokemon = PokemonFactory.create_pokemon(wild_pokemon_name)
-        self.__player_used_dodge = False
-        self.__enemy_used_dodge = False
+        self.__used_dodge = False
         self.__turn_stage = TurnStage.INTRO
         self.__current_option = None
         self.__last_action_time = time.time()
+        self.__switch_options_map = {}
 
         # Observer setup
         self.__battle_messages: list[Message] = []
@@ -78,7 +79,7 @@ class PokemonBattleManager:
             case TurnStage.PLAYER_TURN:
                 messages.extend(self._handle_player_turn())
 
-            case TurnStage.AWAIT_INPUT:
+            case TurnStage.AWAIT_INPUT | TurnStage.AWAIT_SWITCH:
                 messages.extend(self._handle_await_input(battle_data))
 
             case TurnStage.ENEMY_WAIT:
@@ -122,6 +123,12 @@ class PokemonBattleManager:
             for i, attack in enumerate(self.__player_pokemon.known_attacks)
         ]
         full_options = attack_options + ["Dodge", "Run"]
+
+        bag = self.__player.get_state("bag")
+        available = bag.pokemon.get_available_pokemon()
+        if available:
+            full_options.append("Switch Pokemon")
+
         self.__last_action_time = time.time()
         self.__turn_stage = TurnStage.AWAIT_INPUT
         return [OptionsMessage(self.__player, self.__player, full_options)]
@@ -136,8 +143,28 @@ class PokemonBattleManager:
         self.clear_option()
         name = self.__player.get_name()
 
+        if self.__turn_stage == TurnStage.AWAIT_SWITCH:
+            if selected == "Return":
+                self.__turn_stage = TurnStage.PLAYER_TURN
+                return [ServerMessage(self.__player, "Returning to main options.")]
+
+            index = self.__switch_options_map.get(selected)
+            if index is not None:
+                bag = self.__player.get_state("bag")
+                new_active = bag.pokemon.switch_pokemon(self.__player_pokemon, index)
+                if new_active:
+                    self.__player.set_state("active_pokemon", new_active)
+                    self.__player.set_state("bag", bag)
+                    self.__player_pokemon = new_active
+                    self.__turn_stage = TurnStage.ENEMY_WAIT
+                    return [
+                        ServerMessage(self.__player, f"You switched to {new_active.name}!"),
+                        battle_data_fn()
+                    ]
+            return [ServerMessage(self.__player, "Invalid selection. Returning to main options.")]
+
         if selected == "Dodge":
-            self.__player_used_dodge = True
+            self.__used_dodge = True
             messages.append(ServerMessage(self.__player, f"({name}) {self.__player_pokemon.name} prepares to dodge!"))
             self.__turn_stage = TurnStage.ENEMY_WAIT
 
@@ -148,6 +175,29 @@ class PokemonBattleManager:
             else:
                 messages.append(ServerMessage(self.__player, f"({name}) You tried to run but couldn't escape!"))
                 self.__turn_stage = TurnStage.ENEMY_WAIT
+
+        elif selected == "Switch Pokemon":
+            bag = self.__player.get_state("bag")
+            available = bag.pokemon.get_available_pokemon()
+            if not available:
+                messages.append(ServerMessage(self.__player, "No healthy Pokémon available to switch."))
+                self.__turn_stage = TurnStage.PLAYER_TURN
+                return messages
+
+            switch_options = []
+            self.__switch_options_map.clear()
+
+            for index, ball in available:
+                label = f"{ball.get_name()} HP: {ball.get_health()}"
+                self.__switch_options_map[label] = index
+                switch_options.append(label)
+
+            switch_options.append("Return")
+            self.__turn_stage = TurnStage.AWAIT_SWITCH
+            return [
+                ServerMessage(self.__player, "Choose a Pokémon to switch to:"),
+                OptionsMessage(self.__player, self.__player, switch_options)
+            ]
 
         elif ":" in selected and selected.split(":")[0].isdigit():
             attack_index = int(selected.split(":")[0])
@@ -164,14 +214,14 @@ class PokemonBattleManager:
         messages = []
         name = self.__player.get_name()
         if 0 <= index < len(self.__player_pokemon.known_attacks):
-            if self.__enemy_used_dodge and random.random() < OPPONENT_CHANCE_TO_DODGE:
+            if self.__used_dodge and random.random() < OPPONENT_CHANCE_TO_DODGE:
                 messages.append(ServerMessage(self.__player,
                     f"(Opp) {self.__enemy_pokemon.name} dodged {self.__player_pokemon.known_attacks[index]['name']}!"))
             else:
-                if self.__enemy_used_dodge:
+                if self.__used_dodge:
                     messages.append(ServerMessage(self.__player, f"(Opp) Dodge failed!"))
                 result = self.__player_pokemon.attack(index, self.__enemy_pokemon)
-                messages.append(ServerMessage(self.__player, f"({name}) {result['message']} It dealt {result['damage']} damage."))
+                messages.append(ServerMessage(self.__player, f"({name}) {result['message']}"))
                 messages.append(battle_data_fn())
 
                 if result.get("evolved"):
@@ -179,7 +229,7 @@ class PokemonBattleManager:
                     self.__player_pokemon = result["evolved"]
                     messages.append(ServerMessage(self.__player, f"Your Pokémon evolved into {self.__player_pokemon.name}!"))
 
-            self.__enemy_used_dodge = False
+        self.__used_dodge = False
 
         if self.__player_pokemon.is_fainted():
             messages.append(ServerMessage(self.__player, f"({name}) {self.__player_pokemon.name} has fainted! You lost."))
@@ -199,20 +249,20 @@ class PokemonBattleManager:
 
         if action == "Dodge":
             messages.append(ServerMessage(self.__player, f"(Opp) {self.__enemy_pokemon.name} is preparing to dodge!"))
-            self.__enemy_used_dodge = True
+            self.__used_dodge = True
         else:
             attack_index = int(action)
             attack = self.__enemy_pokemon.known_attacks[attack_index]
 
-            if self.__player_used_dodge and random.random() < PLAYER_CHANCE_TO_DODGE:
+            if self.__used_dodge and random.random() < PLAYER_CHANCE_TO_DODGE:
                 messages.append(ServerMessage(self.__player,
                     f"({self.__player.get_name()}) {self.__player_pokemon.name} dodged {attack['name']} attack!"))
             else:
                 result = self.__enemy_pokemon.attack(attack_index, self.__player_pokemon)
-                messages.append(ServerMessage(self.__player, f"(Opp) {result['message']} It dealt {result['damage']} damage."))
+                messages.append(ServerMessage(self.__player, f"(Opp) {result['message']}"))
                 messages.append(battle_data_fn())
 
-        self.__player_used_dodge = False
+        self.__used_dodge = False
 
         if self.__player_pokemon.is_fainted():
             messages.append(ServerMessage(self.__player, f"({self.__player.get_name()}) {self.__player_pokemon.name} has fainted! You lost."))
