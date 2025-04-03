@@ -55,10 +55,11 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
             return []
 
         messages = self.__battle.update()
-
+        
         if self.__battle.is_over():
             self.__player.set_state("active_pokemon", self.__battle.get_player_pokemon())
             self.__player.set_current_menu(None)
+            self.__battle = None
 
         return messages
 
