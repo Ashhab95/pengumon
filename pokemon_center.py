@@ -11,8 +11,9 @@ from .custom_NPCs import Nurse
 
 
 class PokeCounter(Counter):
-    def __init__(self, npc: "NPC") -> None:
-        super().__init__("f", npc)
+    def __init__(self, npc: "NPC", image_name="f") -> None:
+        super().__init__(image_name, npc)
+
 
 
 class PokemonCenter(Map):
@@ -92,13 +93,26 @@ class PokemonCenter(Map):
         objects.append((nurse, Coord(1, 7)))
         main_counter = PokeCounter(nurse)
         objects.append((main_counter, Coord(0, 4)))
-        objects.append((MapObject.get_obj('c_l'), Coord(6, 0)))
+        nurse2 = Nurse(
+            encounter_text="Hello, I am Nurse Alicia, Allow me to heal your active Pokémon!",
+            staring_distance=2,
+            facing_direction='right'
+        )
+        objects.append((nurse2, Coord(7, 0)))
+        left_counter = PokeCounter(nurse2,"ff")
+        objects.append((left_counter, Coord(6, 0)))
+
+        
+
+        #objects.append((MapObject.get_obj('c_l'), Coord(6, 0)))
         objects.append((MapObject.get_obj('sofa_table'), Coord(5, 11)))
         objects.append((MapObject.get_obj('sofa_table'), Coord(10, 11)))
         objects.append((MapObject.get_obj('sofa_table_2'), Coord(11, 0)))
         objects.append((MapObject.get_obj('bookshelf'), Coord(1, 0)))
         objects.append(((MapObject('poke_floor', passable=True)), Coord(7,6)))
         objects.append(((MapObject('shadow', passable=True)), Coord(4,4)))
+        objects.append((MapObject.get_obj('poke_tree'), Coord(2, 14)))
+        objects.append((MapObject.get_obj('poke_tree'), Coord(12, 14)))
         
         
         
