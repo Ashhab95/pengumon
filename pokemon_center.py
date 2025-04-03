@@ -73,7 +73,7 @@ class PokemonCenter(Map):
         objects: list[tuple[MapObject, Coord]] = []
 
         # add a door
-        door = Door('mat', linked_room="Pokemon House")
+        door = Door('mat', linked_room="Example House")
         objects.append((door, Coord(14, 7)))
         objects.append((MapObject.get_obj('wall'), Coord(0, 0)))
         objects.append((MapObject.get_obj('wall'), Coord(0, 1)))
