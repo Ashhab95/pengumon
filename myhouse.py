@@ -27,7 +27,7 @@ class PokemonCenter(Building):
     def __init__(self, linked_room_str: str = "") -> None:
         super().__init__('p1', door_position=Coord(4, 2), linked_room_str=linked_room_str)
 
-class PokemonHouse(Map):
+class ExampleHouse(Map):
     def __init__(self) -> None:
         super().__init__(
             name="Pokemon House",
