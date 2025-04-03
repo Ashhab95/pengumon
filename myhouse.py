@@ -27,74 +27,6 @@ class PokemonCenter(Building):
     def __init__(self, linked_room_str: str = "") -> None:
         super().__init__('p1', door_position=Coord(4, 2), linked_room_str=linked_room_str)
 
-            
-# class ProfessorOak(NPC, SelectionInterface):
-#     def __init__(self, encounter_text: str = "Welcome to the Kanto Region. Choose your starter Pokémon!",
-#                  staring_distance: int = 3, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
-#         super().__init__(
-#             name="Professor Oak",
-#             image='prof',
-#             encounter_text=encounter_text,
-#             facing_direction=facing_direction,
-#             staring_distance=staring_distance
-#         )
-
-#     def done_talking(self, player) -> bool:
-#         """Override to allow re-interaction even after first contact."""
-#         return False
-
-#     def player_interacted(self, player: HumanPlayer) -> list[Message]:
-#         messages: list[Message] = []
-
-#         starter_pokemon = player.get_state("starter_pokemon", None)
-#         print(f"[DEBUG] Oak sees starter_pokemon: {starter_pokemon}")
-
-#         if starter_pokemon:
-#             messages.append(ServerMessage(player, f"You have already chosen {starter_pokemon} as your starter pokemon"))
-#             return messages
-
-#         # First-time interaction
-#         messages.append(ServerMessage(player, self._NPC__encounter_text))
-#         # messages.append(DialogueMessage(self, player, self._NPC__encounter_text, ""))
-
-#         # Give starting items only once
-#         if player.get_state("starter_items_given", False) is not True:
-#             bag = Bag()
-#             bag.add_item(PotionFlyweightFactory.get_small_potion())
-#             bag.add_item(PotionFlyweightFactory.get_medium_potion())
-#             bag.add_item(RegularPokeball())
-#             bag.add_item(GreatBall())
-#             bag.add_item(MasterBall())
-#             player.set_state("bag", bag)
-#             player.set_state("starter_items_given", True)
-
-#         # Set this NPC as the current menu handler
-#         player.set_current_menu(self)
-
-#         # Starter Pokémon options
-#         options = [
-#             {"Charmander": "image/Pokemon/Charmander_front.png"},
-#             {"Squirtle": "image/Pokemon/Squirtle_front.png"},
-#             {"Bulbasaur": "image/Pokemon/Bulbasaur_front.png"}
-#         ]
-#         messages.append(ChooseObjectMessage(self, player, options, window_title="Choose your starter Pokémon!"))
-
-#         return messages
-
-#     def select_option(self, player: HumanPlayer, choice: str) -> list[Message]:
-#         print(f"[DEBUG] Oak received selected option: {choice}")
-
-#         pokemon = PokemonFactory.create_pokemon(choice)
-#         player.set_state("starter_pokemon", pokemon.name)
-#         player.set_state("active_pokemon", pokemon)
-#         player.set_state("pokeballs", [])
-
-#         player.set_current_menu(None)
-
-#         return [ServerMessage(player, f"Excellent choice! Take good care of {pokemon.name}.")]
-        
-
-    
 class PokemonHouse(Map):
     def __init__(self) -> None:
         super().__init__(
@@ -387,14 +319,5 @@ class PokemonHouse(Map):
         objects.append((MapObject.get_obj('rock_1'), Coord(3, 5)))
         objects.append((MapObject.get_obj('rock_1'), Coord(5, 5)))
         
-        
-               
-       
-        
-
-        
-        
-
-
         return objects
 
