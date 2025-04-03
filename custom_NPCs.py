@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     
 from typing import Literal
 from .bag import Bag
-from .items import PotionFlyweightFactory 
+from .items import *
 from .pokeball import *
 from .pokemon import PokemonFactory
 
@@ -32,11 +32,17 @@ class ProfessorOak(NPC, SelectionInterface):
         """Gives starting items to the player if not already given."""
         if player.get_state("starter_items_given", False) is not True:
             bag = Bag()
-            bag.add_item(PotionFlyweightFactory.get_small_potion())
-            bag.add_item(PotionFlyweightFactory.get_medium_potion())
-            bag.add_item(RegularPokeball())
-            bag.add_item(GreatBall())
-            bag.add_item(MasterBall())
+
+            # Add potions
+            bag.potions.add(SmallPotion())
+            bag.potions.add(MediumPotion())
+
+            # Add pokeballs
+            bag.pokeballs.add(RegularPokeball())
+            bag.pokeballs.add(GreatBall())
+            bag.pokeballs.add(MasterBall())
+
+            # Attach the new bag to player
             player.set_state("bag", bag)
             player.set_state("starter_items_given", True)
 
@@ -69,7 +75,6 @@ class ProfessorOak(NPC, SelectionInterface):
         pokemon = PokemonFactory.create_pokemon(choice)
         player.set_state("starter_pokemon", pokemon.name)
         player.set_state("active_pokemon", pokemon)
-        player.set_state("pokeballs", [])
 
         # Give starter items after selection
         self.give_starter_items(player)

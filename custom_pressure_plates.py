@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 import time    
 from .pokemon import *
 from .battle_manager import PokemonBattleManager, TurnStage
+from .enemyAI import *
     
 
 class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
@@ -33,6 +34,14 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
             self.__battle.clear_option()
 
     def player_entered(self, player) -> list[Message]:
+        # This is a safeguard - only allow battle if player has chosen starter pokemon
+        active_pokemon = player.get_state("active_pokemon", None)
+        if active_pokemon is None:
+            return [ServerMessage(player, "You don't have a Pokémon! Visit Professor Oak to choose your starter.")]
+        
+        # TODO
+        # Check if active pokemon is fainted and pokemon in inventory is also fainted
+        
         self.__player = player
         self.__battle = PokemonBattleManager(player, self.__wild_pokemon_name)
         self.__turn_stage = TurnStage.INTRO
@@ -46,9 +55,11 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
             return []
 
         messages = self.__battle.update()
+
         if self.__battle.is_over():
             self.__player.set_state("active_pokemon", self.__battle.get_player_pokemon())
             self.__player.set_current_menu(None)
+
         return messages
 
 
