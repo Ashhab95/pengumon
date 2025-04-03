@@ -273,12 +273,7 @@ class ExampleHouse(Map):
         objects.append((MapObject.get_obj('flower_r'), Coord(8, 21)))
         objects.append((MapObject.get_obj('flower_r'), Coord(9, 21)))
         self.place(objects, 'fence', (10, 22))
-        #self._add_trees(objects, (5, 15), (16, 15),step = 1, tree_type = "tree_f", direction="vertical")
-        #self._add_trees(objects, (5, 14), (16, 14),step = 1, tree_type = "tree_f", direction="vertical")
-        #self._add_trees(objects, (5, 13), (16, 13),step = 1, tree_type = "tree_f", direction="vertical")
-        #self._add_trees(objects, (5, 12), (16, 12),step = 1, tree_type = "tree_f", direction="vertical")
-        #self._add_trees(objects, (3, 7), (13, 7),step = 1, tree_type = "tree_f", direction="vertical")
-        #self._add_trees(objects, (7, 6), (13, 6),step = 1, tree_type = "tree_f", direction="vertical")
+    
        
         building = PokemonCenter(linked_room_str="Pokemon Center")
         objects.append((building, Coord(11, 23)))
@@ -310,13 +305,6 @@ class ExampleHouse(Map):
         objects.append((MapObject.get_obj('flower_r'), Coord(13, 13)))
         objects.append((MapObject.get_obj('flower_r'), Coord(14, 13)))
         objects.append((MapObject.get_obj('rock_led'), Coord(12, 14)))
-       #objects.append((MapObject.get_obj('rock_l2'), Coord(8, 6)))
-        #self.place(objects, 'g_top_right', (10, 27))
-        #self.place(objects, 'g_bottom_right', (11, 27))
-        #self._add_tile_line(objects, 'g', start=(10, 26), end=(10, 23))
-        #self._add_tile_line(objects, 'g', start=(11, 26), end=(11, 23))
-        #self.place(objects, 'g_top_left', (10, 22))
-        #self.place(objects, 'g_bottom_left', (11, 22))
         
         sign = Sign(text="Dangerous Pokemon's ahead, continue at your own risk. ")
         objects.append((sign, Coord(5, 15)))
@@ -333,7 +321,6 @@ class ExampleHouse(Map):
         self.place(objects, 'g_top_left', (13, 2))
         
         
-        #self._add_trees(objects, (6, 2), (6, 5),step = 1, tree_type = "tree_s")
 
 
         self._add_bushes_with_plates(objects, (7, 2), (12, 5), evolution_stage=2, plate_probability=0.6)
