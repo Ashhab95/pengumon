@@ -168,9 +168,38 @@ class ExampleHouse(Map):
                     window_title="Pokémon Stats"
                 )
             ]
+            
+        def give_hint(player: HumanPlayer) -> list[Message]:
+            hints_pool = [
+                ["Visit Professor Oak to get your", "first Pokémon and bag!"],
+                ["You can dodge during battles", "to avoid taking damage!"],
+                ["Use potions from your bag", "to heal your Pokémon."],
+                ["Catch fainted wild Pokémon", "with a Pokéball!"],
+                ["Step on the blue pressure plate", "to switch your active Pokémon."],
+                ["Pokémon van evolve", "after gaining enough XP."],
+                ["You can run from battles,", "but it's not always successful!"]
+            ]
+            
+            hint_lines = random.choice(hints_pool)
 
+            return [
+                DisplayStatsMessage(
+                    sender=self,
+                    recipient=player,
+                    stats=hint_lines,
+                    top_image_path="image/tile/utility/Empty.png", # empty image to avoid errors
+                    bottom_image_path="image/tile/utility/Empty.png", # empty image to avoid errors
+                    window_title="Hint",
+                    scale=0.5
+                )
+            ]
+            
+
+        keybinds["h"] = give_hint
         keybinds["v"] = view_active_pokemon
         return keybinds
+    
+    
 
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
@@ -179,20 +208,14 @@ class ExampleHouse(Map):
         door = Door('tube', linked_room="Trottier Town")
         objects.append((door, Coord(26, 27)))
         
+        switch_plate = SwitchActivePokemonPlate()
+        objects.append((switch_plate, Coord(19, 25)))
+        
         pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
         objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        # heal_pokemon_plate = HealActivePokemonPlate()
-        # objects.append((heal_pokemon_plate, Coord(19, 25)))
-        
-        # choose_pokemon_plate = ChoosePokemonPlate()
-        # objects.append((choose_pokemon_plate, Coord(19, 24)))
-        
         choose_difficulty_plate = ChooseDifficultyPlate()
         objects.append((choose_difficulty_plate, Coord(19, 27)))
-        
-        # display_active_pokemon_plate = DisplayActivePokemonPlate()
-        # objects.append((display_active_pokemon_plate, Coord(19, 22)))
         
        # Create a border of trees
         # Bottom row
@@ -228,9 +251,6 @@ class ExampleHouse(Map):
             staring_distance=3,
         )
         objects.append((prof, Coord(25, 24)))
-
-        #choose_pokemon_plate = ChoosePokemonPlate()
-        #objects.append((choose_pokemon_plate, Coord(26, 20)))
 
         self._add_trees(objects, (16, 2), (16, 16),step=1, tree_type="tree_s")
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)
