@@ -168,9 +168,38 @@ class ExampleHouse(Map):
                     window_title="Pokémon Stats"
                 )
             ]
+            
+        def give_hint(player: HumanPlayer) -> list[Message]:
+            hints_pool = [
+                ["Visit Professor Oak to get your", "first Pokémon and bag!"],
+                ["You can dodge during battles", "to avoid taking damage!"],
+                ["Use potions from your bag", "to heal your Pokémon."],
+                ["Catch fainted wild Pokémon", "with a Pokéball!"],
+                ["Step on the blue pressure plate", "to switch your active Pokémon."],
+                ["Pokémon van evolve", "after gaining enough XP."],
+                ["You can run from battles,", "but it's not always successful!"]
+            ]
+            
+            hint_lines = random.choice(hints_pool)
 
+            return [
+                DisplayStatsMessage(
+                    sender=self,
+                    recipient=player,
+                    stats=hint_lines,
+                    top_image_path="image/tile/utility/Empty.png", # empty image to avoid errors
+                    bottom_image_path="image/tile/utility/Empty.png", # empty image to avoid errors
+                    window_title="Hint",
+                    scale=0.5
+                )
+            ]
+            
+
+        keybinds["h"] = give_hint
         keybinds["v"] = view_active_pokemon
         return keybinds
+    
+    
 
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
