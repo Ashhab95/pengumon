@@ -111,8 +111,12 @@ class ExampleHouse(Map):
         evolution_pools = {
             1: ["Charmander", "Squirtle", "Bulbasaur"],
             2: ["Charmeleon", "Wartortle", "Ivysaur"],
-            3: ["Charizard", "Blastoise", "Venusaur"]
+            3: ["Charizard", "Blastoise", "Venusaur"],
+            4: ["Chimchar", "Piplup", "Turtwig"],
+            5: ["Monferno", "Prinplup", "Grotle"],
+            6: ["Infernape", "Empoleon", "Torterra"]
         }
+
 
         for i in range(i_start, i_end + 1):
             for j in range(j_start, j_end + 1):
@@ -127,6 +131,14 @@ class ExampleHouse(Map):
                         bush = ExtDecor("bushh") # regular bush
                         bush._MapObject__passable = True
                         objects.append((bush, Coord(i, j)))
+    
+    def add_pressure_plate(self, objects, plate_class, position: tuple[int, int]):
+        y, x = position
+        coord = Coord(y, x)
+        plate = plate_class(position=coord)
+        objects.append((plate, coord))
+
+
     
     def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
         keybinds = super()._get_keybinds()
@@ -272,7 +284,7 @@ class ExampleHouse(Map):
         switch_plate = SwitchActivePokemonPlate()
         objects.append((switch_plate, Coord(19, 25)))
         
-        pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
+        pokemon_battle_plate = PokemonBattlePressurePlate("Infernape")
         objects.append((pokemon_battle_plate, Coord(19, 26)))
         
         #choose_difficulty_plate = ChooseDifficultyPlate()
@@ -338,7 +350,6 @@ class ExampleHouse(Map):
         objects.append((MapObject.get_obj('flower_r'), Coord(8, 21)))
         objects.append((MapObject.get_obj('flower_r'), Coord(9, 21)))
         self.place(objects, 'fence', (10, 22))
-    
        
         building = PokemonCenter(linked_room_str="Pokemon Center")
         objects.append((building, Coord(11, 23)))
@@ -399,6 +410,22 @@ class ExampleHouse(Map):
         self.place(objects, 'fence_2', (6, 3))
         self.place(objects, 'fence_2', (6, 4))
         self.place(objects, 'fence_2', (6, 5))
+
+
+        self.add_pressure_plate(objects,PokeballPressurePlate,(4,20))
+        self.add_pressure_plate(objects,PokeballPressurePlate,(18,8))
+        self.add_pressure_plate(objects,PokeballPressurePlate,(3,15))
+        self.add_pressure_plate(objects,PokeballPressurePlate,(3,20))
+        self.add_pressure_plate(objects,PokeballPressurePlate,(18,9))
+        self.add_pressure_plate(objects,PokeballPressurePlate,(14,15))
+
+        self.add_pressure_plate(objects,PotionPressurePlate,(14,7))
+        self.add_pressure_plate(objects,PotionPressurePlate,(3,11))
+        self.add_pressure_plate(objects,PotionPressurePlate,(11,22))
+        self.add_pressure_plate(objects,PotionPressurePlate,(16,27))
+        self.add_pressure_plate(objects,PotionPressurePlate,(4,15))
+        self.add_pressure_plate(objects,PotionPressurePlate,(20,16))
+
 
         
         

@@ -40,7 +40,6 @@ pokedex = {
             {"name": "Tackle", "damage": 10},
         ]
     },
-    # Evolved Forms
     "Charmeleon": {
         "name": "Charmeleon",
         "max_health": 100,
@@ -77,9 +76,6 @@ pokedex = {
             {"name": "Solar Beam", "damage": 30},
         ]
     },
-
-    # final form 
-    
     "Charizard": {
         "name": "Charizard",
         "max_health": 200,
@@ -118,7 +114,113 @@ pokedex = {
             {"name": "Petal Blizzard", "damage": 40},
             {"name": "Frenzy Plant", "damage": 70}
         ]
+    },
+    "Turtwig": {
+        "name": "Turtwig",
+        "max_health": 50,
+        "type": PokemonType.GRASS,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Tackle", "damage": 10},
+            {"name": "Leafage", "damage": 15},
+        ]
+    },
+    "Grotle": {
+        "name": "Grotle",
+        "max_health": 100,
+        "type": PokemonType.GRASS,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Razor Leaf", "damage": 20},
+            {"name": "Bite", "damage": 25},
+            {"name": "Energy Ball", "damage": 30},
+        ]
+    },
+    "Torterra": {
+        "name": "Torterra",
+        "max_health": 200,
+        "type": PokemonType.GRASS,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Earthquake", "damage": 30},
+            {"name": "Crunch", "damage": 35},
+            {"name": "Giga Drain", "damage": 40},
+            {"name": "Frenzy Plant", "damage": 70}
+        ]
+    },
+    "Chimchar": {
+        "name": "Chimchar",
+        "max_health": 50,
+        "type": PokemonType.FIRE,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Scratch", "damage": 10},
+            {"name": "Fury Swipes", "damage": 15},
+        ]
+    },
+    "Monferno": {
+        "name": "Monferno",
+        "max_health": 100,
+        "type": PokemonType.FIRE,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Flame Wheel", "damage": 20},
+            {"name": "Mach Punch", "damage": 25},
+            {"name": "Fire Spin", "damage": 30},
+        ]
+    },
+    "Infernape": {
+        "name": "Infernape",
+        "max_health": 200,
+        "type": PokemonType.FIRE,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Close Combat", "damage": 30},
+            {"name": "Fire Punch", "damage": 35},
+            {"name": "Acrobatics", "damage": 40},
+            {"name": "Flare Blitz", "damage": 70}
+        ]
+    },
+    "Piplup": {
+        "name": "Piplup",
+        "max_health": 50,
+        "type": PokemonType.WATER,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Pound", "damage": 10},
+            {"name": "Bubble", "damage": 15},
+        ]
+    },
+    "Prinplup": {
+        "name": "Prinplup",
+        "max_health": 100,
+        "type": PokemonType.WATER,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Peck", "damage": 20},
+            {"name": "Bubble Beam", "damage": 25},
+            {"name": "Metal Claw", "damage": 30},
+        ]
+    },
+    "Empoleon": {
+        "name": "Empoleon",
+        "max_health": 200,
+        "type": PokemonType.WATER,
+        "level": 1,
+        "xp": 0,
+        "attacks": [
+            {"name": "Drill Peck", "damage": 30},
+            {"name": "Surf", "damage": 35},
+            {"name": "Flash Cannon", "damage": 40},
+            {"name": "Hydro Cannon", "damage": 70}
+        ]
     }
 }
-
-

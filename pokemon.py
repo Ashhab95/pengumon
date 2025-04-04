@@ -122,12 +122,13 @@ class Pokemon:
         self.known_attacks = data['attacks'][:]
         self._observers: list[HealthObserver] = []  # Health observer list
 
-        if name in ["Charmander", "Squirtle", "Bulbasaur"]:
+        if name in ["Charmander", "Squirtle", "Bulbasaur", "Chimchar", "Piplup", "Turtwig"]:
             self.evolution_state = BaseEvolutionState()
-        elif name in ["Charmeleon", "Wartortle", "Ivysaur"]:
+        elif name in ["Charmeleon", "Wartortle", "Ivysaur", "Monferno", "Prinplup", "Grotle"]:
             self.evolution_state = SecondEvolutionState()
-        elif name in ["Charizard", "Blastoise", "Venusaur"]:
+        elif name in ["Charizard", "Blastoise", "Venusaur", "Infernape", "Empoleon", "Torterra"]:
             self.evolution_state = FinalEvolutionState()
+
 
     def __getstate__(self):
         state = self.__dict__.copy()
