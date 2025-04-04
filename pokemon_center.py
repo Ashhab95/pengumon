@@ -24,6 +24,7 @@ class PokemonCenter(Map):
             size=(15, 15),
             entry_point=Coord(13, 7),
             background_tile_image='poke_center_tile',
+            background_music='killswitch'
         )
     def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
         keybinds = super()._get_keybinds()

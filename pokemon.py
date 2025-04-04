@@ -243,7 +243,8 @@ class PokemonFactory:
         import random
         
         # Choose a random Pokemon type
-        starter_options = ["Charmander", "Squirtle", "Bulbasaur"]
+        starter_options = [ "Charmander", "Squirtle", "Bulbasaur","Chimchar", "Piplup", "Turtwig"]
+
         pokemon = PokemonFactory.create_pokemon(random.choice(starter_options))
         
         # Get target level

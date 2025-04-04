@@ -97,12 +97,12 @@ class ExampleHouse(Map):
   
     def _add_bushes_with_plates(self, objects, start_pos, end_pos, evolution_stage=1, plate_probability=0.8):
         """Add an area of bushes with random PokemonBattlePressurePlates beneath.
-        
+
         Args:
             objects: List to append objects to.
             start_pos: Top left corner coordinate (i, j) of the area.
             end_pos: Bottom right corner coordinate (i, j) of the area.
-            evolution_stage: 1 (BASE), 2 (SECOND), or 3 (FINSL).
+            evolution_stage: 1 (BASE), 2 (SECOND), or 3 (FINAL).
             plate_probability: Probability of placing a pressure plate under a bush.
         """
         i_start, j_start = start_pos
@@ -118,7 +118,6 @@ class ExampleHouse(Map):
             6: ["Infernape", "Empoleon", "Torterra"]
         }
 
-
         for i in range(i_start, i_end + 1):
             for j in range(j_start, j_end + 1):
                 if 0 <= i < self._map_rows and 0 <= j < self._map_cols:
@@ -126,10 +125,10 @@ class ExampleHouse(Map):
                         possible_pokemon = evolution_pools.get(evolution_stage, [])
                         if possible_pokemon:
                             chosen = random.choice(possible_pokemon)
-                            plate = PokemonBattlePressurePlate(chosen) # pokemon battle pressure plate with random Pokémon
+                            plate = PokemonBattlePressurePlate(chosen)
                             objects.append((plate, Coord(i, j)))
-                    else: # random.random() >= plate_probability
-                        bush = ExtDecor("bushh") # regular bush
+                    else:
+                        bush = ExtDecor("bushh")
                         bush._MapObject__passable = True
                         objects.append((bush, Coord(i, j)))
     
@@ -188,14 +187,14 @@ class ExampleHouse(Map):
                 ["You can dodge during battles", "to avoid taking damage!"],
                 ["Use potions from your bag", "to heal your Pokémon."],
                 ["Catch fainted wild Pokémon", "with a Pokéball!"],
-                ["Step on the blue plate", "to switch active Pokémon."],
+                ["Press 's' to switch", "your active Pokémon."],
                 ["Pokémon can evolve", "after gaining enough XP."],
                 ["You can run from battles,", "but it's not always successful!"],
                 ["Press 'v' to view stats", "of your active Pokémon!"],
                 ["Fire types are strong", "against grass types."],
                 ["Water types are strong", "against fire types."],
                 ["Grass types are strong", "against water types."],
-                ["Heal your Pokémon", "at the Pokémon Center!"],
+                ["Heal your Pokémons", "at the Pokémon Center!"],
                 ["Use potions wisely", "to gain an advantage!"]
             ]
 
@@ -282,11 +281,11 @@ class ExampleHouse(Map):
         door = Door('tube', linked_room="Trottier Town", is_main_entrance=True)
         objects.append((door, Coord(26, 27)))
         
-        switch_plate = SwitchActivePokemonPlate()
-        objects.append((switch_plate, Coord(19, 25)))
+        #switch_plate = SwitchActivePokemonPlate()
+        #objects.append((switch_plate, Coord(19, 25)))
         
-        pokemon_battle_plate = PokemonBattlePressurePlate("Infernape")
-        objects.append((pokemon_battle_plate, Coord(19, 26)))
+        #pokemon_battle_plate = PokemonBattlePressurePlate("Infernape")
+        #objects.append((pokemon_battle_plate, Coord(19, 26)))
         
         #choose_difficulty_plate = ChooseDifficultyPlate()
         #objects.append((choose_difficulty_plate, Coord(19, 27)))
@@ -308,7 +307,7 @@ class ExampleHouse(Map):
         
         # Add tree rows above entry path
         for tree_row in [21, 22]:
-            self._add_trees(objects, (tree_row, 4), (tree_row, 26),step=2)
+            self._add_trees(objects, (tree_row, 4), (tree_row, 27),step=2)
 
         self._add_tile_line(objects, 'poke_sand_up', start=(25, 4), end=(25, 25))
         self._add_tile_line(objects, 'poke_sand_down', start=(26, 2), end=(26, 25))
@@ -328,7 +327,7 @@ class ExampleHouse(Map):
             facing_direction="down",
             staring_distance=3,
         )
-        objects.append((prof, Coord(25, 24)))
+        objects.append((prof, Coord(24, 24)))
 
         self._add_trees(objects, (15, 2), (15, 16),step=1, tree_type="tree_f")
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)
