@@ -17,7 +17,7 @@ from .observers import BattleMessageNotifier
 
 # Global constants
 PLAYER_CHANCE_TO_DODGE = 0.5
-OPPONENT_CHANCE_TO_DODGE = 0.5
+OPPONENT_CHANCE_TO_DODGE = 0.999
 ENEMY_RESPONSE_TIME = 3
 PLAYER_CHANCE_TO_RUN = 0.7
 
@@ -48,8 +48,6 @@ class PokemonBattleManager:
         self.__last_action_time = time.time()
         self.__switch_options_map = {}
         
-    
-
         # Observer setup
         self.__battle_messages: list[Message] = []
         self.__player_pokemon.add_observer(BattleMessageNotifier(player, self.__battle_messages))
@@ -185,7 +183,7 @@ class PokemonBattleManager:
                     
                     if success:
                         # Update player state
-                        self.__player.set_state("active_pokemon", self.__player_pokemon.to_list())
+                        # self.__player.set_state("active_pokemon", self.__player_pokemon.to_list())
                         self.__player.set_state("bag", bag.to_dict())
                         
                         messages.append(ServerMessage(
@@ -440,11 +438,14 @@ class PokemonBattleManager:
                 if self.__used_dodge:
                     messages.append(ServerMessage(self.__player, "(Opp) Dodge failed!"))
 
+                if len(self.__player_pokemon._observers) == 0:
+                    self.__player_pokemon.add_observer(BattleMessageNotifier(self.__player, self.__battle_messages))
+                
                 result = self.__enemy_pokemon.attack(attack_index, self.__player_pokemon)
                 messages.append(ServerMessage(self.__player, f"(Opp) {result['message']}"))
                 messages.append(self._make_battle_message())
 
-        self.__used_dodge = False
+                self.__used_dodge = False
 
         # Flush health change messages from observers
         print("Battle buffer before flush in enemy turn:", self.__battle_messages)
@@ -476,6 +477,8 @@ class PokemonBattleManager:
                 self.__player.set_state("active_pokemon", new_active.to_list())  
                 self.__player.set_state("bag", bag.to_dict())                    
                 self.__player_pokemon = new_active
+                if len(self.__player_pokemon._observers) == 0:
+                    self.__player_pokemon.add_observer(BattleMessageNotifier(self.__player, self.__battle_messages))
                 self.__turn_stage = TurnStage.PLAYER_TURN
 
                 return [

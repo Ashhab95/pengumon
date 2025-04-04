@@ -137,10 +137,11 @@ class PokemonHouse(Map):
         keybinds = super()._get_keybinds()
 
         def view_active_pokemon(player: HumanPlayer) -> list[Message]:
-            active_pokemon = player.get_state("active_pokemon", None)
-            if not active_pokemon:
+            data = player.get_state("active_pokemon", None)
+            if not data:
                 return [ServerMessage(player, "No active Pokémon found.")]
 
+            active_pokemon = Pokemon.from_list(data)
             name = active_pokemon.name
             level = active_pokemon.level
             current_hp = active_pokemon.current_health
@@ -191,7 +192,6 @@ class PokemonHouse(Map):
                 ["Use potions wisely", "to gain an advantage!"]
             ]
 
-
             hint_lines = random.choice(hints_pool)
 
             return [
@@ -207,10 +207,11 @@ class PokemonHouse(Map):
             ]
 
         def switch_active_pokemon(player: HumanPlayer) -> list[Message]:
-            bag = player.get_state("bag", None)
-            if not bag:
+            bag_data = player.get_state("bag", None)
+            if not bag_data:
                 return [ServerMessage(player, "You don't have a bag yet! Please visit Professor Oak.")]
 
+            bag = Bag.from_dict(bag_data)
             available = bag.pokemon.get_available_pokemon()
             if not available:
                 return [ServerMessage(player, "You don't have any healthy Pokémon to switch to!")]
@@ -237,11 +238,12 @@ class PokemonHouse(Map):
                         ]
                     index = options_map.get(selected_option)
                     if index is not None:
-                        old_active = player.get_state("active_pokemon", None)
+                        active_data = player.get_state("active_pokemon", None)
+                        old_active = Pokemon.from_list(active_data)
                         new_active = bag.pokemon.switch_pokemon(old_active, index)
                         if new_active:
-                            player.set_state("active_pokemon", new_active)
-                            player.set_state("bag", bag)
+                            player.set_state("active_pokemon", new_active.to_list())
+                            player.set_state("bag", bag.to_dict())
                             player.set_current_menu(None)
                             return [
                                 ServerMessage(player, f"{new_active.name} is now your active Pokémon!"),
@@ -256,8 +258,6 @@ class PokemonHouse(Map):
                 ServerMessage(player, "Choose a Pokémon to set as your active Pokémon:"),
                 OptionsMessage(switch_menu, player, options)
             ]
-        
-
 
         keybinds["h"] = give_hint
         keybinds["v"] = view_active_pokemon
@@ -280,9 +280,6 @@ class PokemonHouse(Map):
         #pokemon_battle_plate = PokemonBattlePressurePlate("Infernape")
         #objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        #choose_difficulty_plate = ChooseDifficultyPlate()
-        #objects.append((choose_difficulty_plate, Coord(19, 27)))
-        
         
         potion_plate = PokeballPressurePlate(position=Coord(19, 27))
         objects.append((potion_plate, Coord(19, 27)))
@@ -298,7 +295,7 @@ class PokemonHouse(Map):
         self._add_trees(objects, (0, 2), (0, self._map_cols - 2), step=2)
             
         # Add tree rows above entry path
-        self._add_trees(objects, (21, 4), (21, 23), step=2)
+        self._add_trees(objects, (21, 4), (21, 27), step=2)
         self._add_trees(objects, (22, 4), (22, 23), step=2)
         # Professor Oak stands at (24, 24)
         self._add_trees(objects, (22, 26), (22, 27), step=2)
@@ -323,6 +320,9 @@ class PokemonHouse(Map):
             staring_distance=3,
         )
         objects.append((prof, Coord(24, 24)))
+        
+        choose_difficulty_plate = ChooseDifficultyPlate()
+        objects.append((choose_difficulty_plate, Coord(20, 27)))
 
         self._add_trees(objects, (15, 2), (15, 16),step=1, tree_type="tree_f")
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)

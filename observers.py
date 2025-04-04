@@ -21,13 +21,18 @@ class BattleMessageNotifier(HealthObserver):
         self.__messages = message_buffer
 
     def on_health_changed(self, subject, old_hp, new_hp):
+        print(f"[DEBUG] Health change detected for {subject.name}: {old_hp} → {new_hp}")
         if new_hp < old_hp:
+            print("[DEBUG] Appending damage message")
             self.__messages.append(ServerMessage(
                 self.__player,
                 f"{subject.name} took damage! ({old_hp} → {new_hp})"
             ))
         elif new_hp > old_hp:
+            print("[DEBUG] Appending heal message")
             self.__messages.append(ServerMessage(
                 self.__player,
                 f"{subject.name} was healed! ({old_hp} → {new_hp})"
             ))
+        else:
+            print("[DEBUG] No health change detected.")

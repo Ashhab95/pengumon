@@ -77,29 +77,32 @@ class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
         super().__init__(image_name="hal9000", stepping_text="Choose your battle difficulty!")
 
     def player_entered(self, player) -> list[Message]:
-        current_ai = player.get_state("enemy_ai", None)
-        current_difficulty = type(current_ai).__name__.replace("AI", "") if current_ai else "None"
+        # Get string from state
+        current_ai_level = player.get_state("enemy_ai", None)
+        current_difficulty = current_ai_level.capitalize() if current_ai_level else "None"
 
-        # Register this plate as the active menu
+        # Set this plate as active menu
         player.set_current_menu(self)
 
         return [
             ServerMessage(player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty."),
-            # DialogueMessage(self, player, f"Current difficulty: {current_difficulty}\nChoose a new difficulty.", ""),
             OptionsMessage(self, player, ["Easy", "Medium", "Hard"])
         ]
 
     def select_option(self, player, selected_option: str) -> list[Message]:
+        # Map strings to lowercase keys for storage
         difficulty_map = {
-            "Easy": EasyAI,
-            "Medium": MediumAI,
-            "Hard": HardAI,
+            "Easy": "easy",
+            "Medium": "medium",
+            "Hard": "hard",
         }
 
-        ai_class = difficulty_map.get(selected_option)
-        if ai_class:
-            player.set_state("enemy_ai", ai_class())
-            player.set_current_menu(None)  # Clear menu so future interactions work
+        difficulty_key = difficulty_map.get(selected_option)
+        if difficulty_key:
+            # Store just the lowercase string in player state
+            player.set_state("enemy_ai", difficulty_key)
+            player.set_current_menu(None)
+
             return [
                 ServerMessage(player, f"Difficulty set to {selected_option}."),
                 OptionsMessage(self, player, [], destroy=True)
@@ -107,7 +110,7 @@ class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
 
         return [ServerMessage(player, "Invalid difficulty selection.")]
     
-
+# Old code as of right now it's broken
 class SwitchActivePokemonPlate(PressurePlate, SelectionInterface):
     def __init__(self):
         super().__init__(image_name="blue_circle", stepping_text="You stepped on a Pokémon switching pad!")
