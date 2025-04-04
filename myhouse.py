@@ -298,7 +298,7 @@ class PokemonHouse(Map):
         self._add_trees(objects, (0, 2), (0, self._map_cols - 2), step=2)
             
         # Add tree rows above entry path
-        self._add_trees(objects, (21, 4), (21, 27), step=2)
+        self._add_trees(objects, (21, 4), (21, 23), step=2)
         self._add_trees(objects, (22, 4), (22, 23), step=2)
         # Professor Oak stands at (24, 24)
         self._add_trees(objects, (22, 26), (22, 27), step=2)
@@ -425,4 +425,5 @@ class PokemonHouse(Map):
         
         
         return objects
+    
 
