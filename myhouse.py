@@ -251,10 +251,13 @@ class ExampleHouse(Map):
                 ServerMessage(player, "Choose a Pokémon to set as your active Pokémon:"),
                 OptionsMessage(switch_menu, player, options)
             ]
+        
+
 
         keybinds["h"] = give_hint
         keybinds["v"] = view_active_pokemon
         keybinds["s"] = switch_active_pokemon
+
         return keybinds
     
     
@@ -272,9 +275,13 @@ class ExampleHouse(Map):
         pokemon_battle_plate = PokemonBattlePressurePlate("Bulbasaur")
         objects.append((pokemon_battle_plate, Coord(19, 26)))
         
-        choose_difficulty_plate = ChooseDifficultyPlate()
-        objects.append((choose_difficulty_plate, Coord(19, 27)))
+        #choose_difficulty_plate = ChooseDifficultyPlate()
+        #objects.append((choose_difficulty_plate, Coord(19, 27)))
         
+        
+        potion_plate = PokeballPressurePlate(position=Coord(19, 27))
+        objects.append((potion_plate, Coord(19, 27)))
+       
        # Create a border of trees
         # Bottom row
         self._add_trees(objects, (self._map_rows - 3, 2), (self._map_rows - 3, self._map_cols - 1), step=2)

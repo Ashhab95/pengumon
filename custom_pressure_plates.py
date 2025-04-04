@@ -11,6 +11,10 @@ import time
 from .pokemon import *
 from .battle_manager import PokemonBattleManager, TurnStage
 from .enemyAI import *
+from .bag import Bag
+from .items import *
+from .pokeball import *
+from .pokemon import PokemonFactory
     
 
 class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
@@ -165,6 +169,71 @@ class SwitchActivePokemonPlate(PressurePlate, SelectionInterface):
                 
         return []
 
-
     def clear_option(self) -> None:
         self.__current_option = None
+
+
+class PotionPressurePlate(PressurePlate):
+    def __init__(self, position: Coord):
+        # Randomly assign a potion to this plate on creation
+        potion_classes = [SmallPotion, MediumPotion, LargePotion]
+        self.potion_class = random.choice(potion_classes)
+        self.__pos = position
+
+        # Determine image name based on potion type
+        potion_to_image = {
+            SmallPotion: "heal_smal",
+            MediumPotion: "heal_mediu",
+            LargePotion: "heal_ful"
+        }
+        image_name = potion_to_image.get(self.potion_class, "blue_circle")
+
+        super().__init__(image_name=image_name, stepping_text="You stepped on a potion pad!")
+
+    def player_entered(self, player) -> list:
+        potion = self.potion_class()
+
+        # Add potion to the player's bag
+        bag = player.get_state("bag")
+        bag.potions.add(potion)
+        player.set_state("bag", bag)
+
+        # Remove this pressure plate from the map using the provided position
+        if self.__pos is not None:
+            game_map: Map = player.get_current_room()
+            game_map.remove_from_grid(map_obj=self, start_pos=self.__pos)
+
+        return [ServerMessage(player, f"You found a {potion.get_name()}! It has been added to your bag.")]
+
+class PokeballPressurePlate(PressurePlate):
+    def __init__(self, position: Coord):
+        # Randomly assign a Pokeball type to this plate
+        pokeball_classes = [RegularPokeball, GreatBall, UltraBall, MasterBall]
+        self.pokeball_class = random.choice(pokeball_classes)
+        self.__pos = position
+
+        # Determine image name based on pokeball type
+        pokeball_to_image = {
+            RegularPokeball: "poke",
+            GreatBall: "great",
+            UltraBall: "ultra",
+            MasterBall: "master"
+        }
+        image_name = pokeball_to_image.get(self.pokeball_class, "blue_circle")
+
+        super().__init__(image_name=image_name, stepping_text="You stepped on a Pokéball pad!")
+
+    def player_entered(self, player) -> list:
+        pokeball = self.pokeball_class()
+
+        # Add pokeball to the player's bag
+        bag = player.get_state("bag")
+        bag.pokeballs.add(pokeball)
+        player.set_state("bag", bag)
+
+        # Remove this pressure plate from the map using the provided position
+        if self.__pos is not None:
+            game_map: Map = player.get_current_room()
+            game_map.remove_from_grid(map_obj=self, start_pos=self.__pos)
+
+        return [ServerMessage(player, f"You found a {pokeball.name}! It has been added to your bag.")]
