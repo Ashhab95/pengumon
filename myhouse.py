@@ -36,6 +36,7 @@ class ExampleHouse(Map):
             size=(30, 30),
             entry_point=Coord(26, 26),
             background_tile_image='p_grass',
+            background_music='swimming'
         )
     
     def _add_trees(self, objects, start_pos, end_pos, step=1, tree_type="tree_lar", direction="horizontal"):
