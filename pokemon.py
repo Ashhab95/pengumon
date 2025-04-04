@@ -223,11 +223,13 @@ class Pokemon:
         return evolved_pokemon
     
     def to_list(self) -> list:
+        print(self.p_type.name)
+        print(type(self.p_type.name))
         return [
             self.name,
             self.max_health,
             self.current_health,
-            self.p_type,
+            self.p_type.name,
             self.level,
             self.xp,
             self.known_attacks,
@@ -240,7 +242,13 @@ class Pokemon:
         poke = Pokemon(name)
         poke.max_health = max_health
         poke.current_health = current_health
-        poke.p_type = p_type
+        # Manually assign enum based on string
+        if p_type == "FIRE":
+            poke.p_type = PokemonType.FIRE
+        elif p_type == "WATER":
+            poke.p_type = PokemonType.WATER
+        elif p_type == "GRASS":
+            poke.p_type = PokemonType.GRASS
         poke.level = level
         poke.xp = xp
         poke.known_attacks = known_attacks
@@ -250,6 +258,7 @@ class Pokemon:
             poke.evolution_state = SecondEvolutionState()
         elif evo_class == "FinalEvolutionState":
             poke.evolution_state = FinalEvolutionState()
+            
         return poke
 
 

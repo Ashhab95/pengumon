@@ -22,6 +22,7 @@ from collections.abc import Callable
 from .custom_pressure_plates import *
 from .custom_NPCs import ProfessorOak
 from .custom_buildings import PokemonCenter
+from .pokedex import *
 
 class PokemonHouse(Map):
     MAIN_ENTRANCE = True
@@ -142,6 +143,7 @@ class PokemonHouse(Map):
                 return [ServerMessage(player, "No active Pokémon found.")]
 
             active_pokemon = Pokemon.from_list(data)
+
             name = active_pokemon.name
             level = active_pokemon.level
             current_hp = active_pokemon.current_health
@@ -165,7 +167,7 @@ class PokemonHouse(Map):
 
             return [
                 DisplayStatsMessage(
-                    sender=self,
+                    sender=player,  # Keybind-triggered messages use player as sender
                     recipient=player,
                     stats=stats_lines,
                     top_image_path=f"image/Pokemon/{name}_front.png",

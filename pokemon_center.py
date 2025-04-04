@@ -13,6 +13,8 @@ import random
 from .bag import Bag
 from .items import *
 from .pokeball import *
+from .pokedex import *
+from enum import Enum, auto
 
 
 class PokeCounter(Counter):
@@ -43,7 +45,7 @@ class PokemonCenter(Map):
             level = active_pokemon.level
             current_hp = active_pokemon.current_health
             max_hp = active_pokemon.max_health
-            p_type = active_pokemon.p_type.name
+            p_type = active_pokemon.p_type
             xp = active_pokemon.xp
             evo_level = active_pokemon.evolution_state.get_evo_level()
             attacks = active_pokemon.known_attacks
