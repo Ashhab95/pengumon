@@ -20,7 +20,7 @@ from enum import Enum, auto
 from typing import Literal
 from collections.abc import Callable
 from .custom_pressure_plates import *
-from .custom_NPCs import ProfessorOak
+from .custom_NPCs import ProfessorOak, Nurse
 from .custom_buildings import PokemonCenter
 from .pokedex import *
 
@@ -329,7 +329,7 @@ class PokemonHouse(Map):
         self._add_trees(objects, (0, 2), (0, self._map_cols - 2), step=2)
             
         # Add tree rows above entry path
-        self._add_trees(objects, (21, 4), (21, 23), step=2)
+        self._add_trees(objects, (21, 4), (21, 27), step=2)
         self._add_trees(objects, (22, 4), (22, 23), step=2)
         # Professor Oak stands at (24, 24)
         reset_plate = ResetPlate()
@@ -385,6 +385,11 @@ class PokemonHouse(Map):
         objects.append((building, Coord(11, 23)))
         sign = Sign(text="Welcome to the Pokemon Center")
         objects.append((sign, Coord(15, 23)))
+        nurse = Nurse(
+            encounter_text="Hello, I am Nurse Joy, Allow me to heal your active Pokémon!",
+            staring_distance=2,
+        )
+        objects.append((nurse, Coord(16, 22)))
         #path from pokemon center
         self.place(objects, 'top_left', (16, 24))
         self.place(objects, 'poke_sand_up', (16, 25))
