@@ -24,8 +24,9 @@ class Pokeball(Item):
         """Using pokeball to catch a wild pokemon
         Returns: true if the pokemon is caught, false otherwise
         """
-        success = random.random() < self.catch_rate
-        if pokemon.is_fainted() and success:
+        health_factor = pokemon.current_health / pokemon.max_health
+        success = random.random() < self.catch_rate * (1 - health_factor)
+        if success:
             self.captured_pokemon = pokemon
             return True
         return False

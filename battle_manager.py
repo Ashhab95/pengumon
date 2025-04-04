@@ -26,6 +26,7 @@ class TurnStage(Enum):
     PLAYER_TURN = auto()    # present options to player (called once so option messages don't repeat)
     AWAIT_INPUT = auto()    # wait for player input and process it
     AWAIT_SWITCH = auto()   # wait for player input and process it
+    AWAIT_BAG = auto() 
     ENEMY_WAIT = auto()     # time delay before enemy action
     ENEMY_TURN = auto()     # perform enemy action
     END = auto()            # end stage where we announce the battle is over and destroy the windows
@@ -74,7 +75,7 @@ class PokemonBattleManager:
             case TurnStage.PLAYER_TURN:
                 messages.extend(self._handle_player_turn())
 
-            case TurnStage.AWAIT_INPUT | TurnStage.AWAIT_SWITCH: # player inputs are handled in the same way
+            case TurnStage.AWAIT_INPUT | TurnStage.AWAIT_SWITCH|TurnStage.AWAIT_BAG: # player inputs are handled in the same way
                 messages.extend(self._handle_await_input())
 
             case TurnStage.ENEMY_WAIT:
@@ -133,7 +134,7 @@ class PokemonBattleManager:
         for i, attack in enumerate(self.__player_pokemon.known_attacks):
             attack_options.append(f"{i}: {attack['name']} ({attack['damage']})")
 
-        utility_options = ["Dodge", "Run"]
+        utility_options = ["Dodge", "Run","Bag"]
 
         # Add switch option if other Pokémon are available (not fainted)
         bag = self.__player.get_state("bag")
@@ -157,7 +158,89 @@ class PokemonBattleManager:
 
         self.clear_option()
         name = self.__player.get_name()
-
+        if self.__turn_stage == TurnStage.AWAIT_BAG:
+            if selected == "Return":
+                self.__turn_stage = TurnStage.PLAYER_TURN
+                return [ServerMessage(self.__player, "Returning to main options.")]
+        # Parse the selected item
+            if selected.startswith("Potion:"):
+                item_key = selected.split("Potion: ")[1].lower().replace(" ", "_")
+                bag = self.__player.get_state("bag")
+                potion = bag.potions.remove(item_key)
+                
+                if potion:
+                    # Use the potion
+                    old_health = self.__player_pokemon.current_health
+                    success = potion.use(self.__player_pokemon)
+                    
+                    if success:
+                        # Update player state
+                        self.__player.set_state("active_pokemon", self.__player_pokemon)
+                        self.__player.set_state("bag", bag)
+                        
+                        messages.append(ServerMessage(
+                            self.__player,
+                            f"({name}) Used {potion.get_name()}! {self.__player_pokemon.name} was healed!"
+                        ))
+                        
+                        # Update battle UI
+                        messages.append(self._make_battle_message())
+                        
+                        # Move to enemy turn
+                        self.__turn_stage = TurnStage.ENEMY_WAIT
+                    else:
+                        # Return the potion to the bag if not used
+                        bag.potions.add(potion)
+                        self.__player.set_state("bag", bag)
+                        
+                        messages.append(ServerMessage(
+                            self.__player, 
+                            f"The potion had no effect! {self.__player_pokemon.name} is already at full health."
+                        ))
+                        self.__turn_stage = TurnStage.PLAYER_TURN
+                else:
+                    messages.append(ServerMessage(self.__player, "Item not found in bag."))
+                    self.__turn_stage = TurnStage.PLAYER_TURN
+                    
+            elif selected.startswith("Ball:"):
+                item_key = selected.split("Ball: ")[1].lower().replace(" ", "_")
+                bag = self.__player.get_state("bag")
+                pokeball = bag.pokeballs.remove(item_key)
+                
+                if pokeball:
+                    messages.append(ServerMessage(
+                        self.__player,
+                        f"({name}) threw a {pokeball.get_name()}!"
+                    ))
+                    
+                    # Try to catch the Pokémon using the modified use method
+                    catch_success = pokeball.use(self.__enemy_pokemon)
+                    
+                    if catch_success:
+                        messages.append(ServerMessage(
+                            self.__player,
+                            f"({name}) caught {self.__enemy_pokemon.name}!"
+                        ))
+                        
+                        # Add the pokeball with the caught Pokémon to the player's bag
+                        bag.pokemon.add(pokeball)
+                        self.__player.set_state("bag", bag)
+                        
+                        # End the battle
+                        self.__turn_stage = TurnStage.END
+                    else:
+                        messages.append(ServerMessage(
+                            self.__player,
+                            f"Oh no! The {self.__enemy_pokemon.name} broke free!"
+                        ))
+                        
+                        # Enemy turn - we used our turn attempting to catch
+                        self.__turn_stage = TurnStage.ENEMY_WAIT
+                else:
+                    messages.append(ServerMessage(self.__player, "Item not found in bag."))
+                    self.__turn_stage = TurnStage.PLAYER_TURN
+                
+            return messages
         if self.__turn_stage == TurnStage.AWAIT_SWITCH:
             if selected == "Return":
                 self.__turn_stage = TurnStage.PLAYER_TURN
@@ -177,6 +260,44 @@ class PokemonBattleManager:
                         self._make_battle_message()
                     ]
             return [ServerMessage(self.__player, "Invalid selection. Returning to main options.")]
+
+
+        # Add handler for "Bag" option selection
+        if selected == "Bag":
+            bag = self.__player.get_state("bag")
+            
+            # Create options list for potions
+            potion_options = []
+            for key, count in bag.potions._get_counts().items():
+                if count > 0:
+                    formatted_key = key.replace("_", " ").title()
+                    potion_options.append(f"Potion: {formatted_key}")
+            
+            # Create options list for pokeballs
+            pokeball_options = []
+            for key, count in bag.pokeballs._get_counts().items():
+                if count > 0:
+                    formatted_key = key.replace("_", " ").title()
+                    pokeball_options.append(f"Ball: {formatted_key}")
+            
+            # Combine options
+            bag_options = potion_options + pokeball_options
+            
+            if not bag_options:
+                messages.append(ServerMessage(self.__player, "Your bag is empty!"))
+                self.__turn_stage = TurnStage.PLAYER_TURN
+                return messages
+            
+            # Add return option
+            bag_options.append("Return")
+            
+            # Set state and return options message
+            self.__turn_stage = TurnStage.AWAIT_BAG
+            return [
+                ServerMessage(self.__player, "Choose an item to use:"),
+                OptionsMessage(self.__player, self.__player, bag_options)
+            ]
+
 
         if selected == "Dodge":
             self.__used_dodge = True

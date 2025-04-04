@@ -129,7 +129,6 @@ class ExampleHouse(Map):
                         objects.append((bush, Coord(i, j)))
     
     def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
-        #cannot get this work in a seperate file 
         keybinds = super()._get_keybinds()
 
         def view_active_pokemon(player: HumanPlayer) -> list[Message]:
@@ -169,24 +168,25 @@ class ExampleHouse(Map):
                     window_title="Pokémon Stats"
                 )
             ]
-            
+
         def give_hint(player: HumanPlayer) -> list[Message]:
             hints_pool = [
-                ["Visit Professor Oak to get your", "first Pokémon and bag!"],
+                ["Visit Professor Oak", "to get your first Pokémon and bag!"],
                 ["You can dodge during battles", "to avoid taking damage!"],
                 ["Use potions from your bag", "to heal your Pokémon."],
                 ["Catch fainted wild Pokémon", "with a Pokéball!"],
-                ["Step on the blue pressure plate", "to switch your active Pokémon."],
+                ["Step on the blue plate", "to switch active Pokémon."],
                 ["Pokémon can evolve", "after gaining enough XP."],
                 ["You can run from battles,", "but it's not always successful!"],
-                ["You can view the stats of your active Pokemon", "by clicking on v!"],
-                ["Fire types are strong against grass types"],
-                ["Water types are strong against fire types"],
-                ["Grass types are strong against water types"],
-                ["You can heal your Pokémon by going to the Pokémon center"],
-                ["Use potions to gain an advantage!"]
+                ["Press 'v' to view stats", "of your active Pokémon!"],
+                ["Fire types are strong", "against grass types."],
+                ["Water types are strong", "against fire types."],
+                ["Grass types are strong", "against water types."],
+                ["Heal your Pokémon", "at the Pokémon Center!"],
+                ["Use potions wisely", "to gain an advantage!"]
             ]
-            
+
+
             hint_lines = random.choice(hints_pool)
 
             return [
@@ -194,16 +194,67 @@ class ExampleHouse(Map):
                     sender=self,
                     recipient=player,
                     stats=hint_lines,
-                    top_image_path="image/tile/utility/Empty.png", # empty image to avoid errors
-                    bottom_image_path="image/tile/utility/Empty.png", # empty image to avoid errors
+                    top_image_path="image/tile/utility/Empty.png",
+                    bottom_image_path="image/tile/utility/Empty.png",
                     window_title="Hint",
                     scale=0.5
                 )
             ]
-            
+
+        def switch_active_pokemon(player: HumanPlayer) -> list[Message]:
+            bag = player.get_state("bag", None)
+            if not bag:
+                return [ServerMessage(player, "You don't have a bag yet! Please visit Professor Oak.")]
+
+            available = bag.pokemon.get_available_pokemon()
+            if not available:
+                return [ServerMessage(player, "You don't have any healthy Pokémon to switch to!")]
+
+            options_map = {}
+            options = []
+            for index, ball in available:
+                label = f"{ball.get_name()} HP: {ball.get_health()}"
+                options_map[label] = index
+                options.append(label)
+
+            options.append("Exit")
+
+            class SwitchMenu:
+                def get_name(self):
+                    return "SwitchMenu"
+
+                def select_option(self, player, selected_option: str) -> list[Message]:
+                    if selected_option == "Exit":
+                        player.set_current_menu(None)
+                        return [
+                            ServerMessage(player, "You chose not to switch active Pokémon."),
+                            OptionsMessage(self, player, [], destroy=True)
+                        ]
+                    index = options_map.get(selected_option)
+                    if index is not None:
+                        old_active = player.get_state("active_pokemon", None)
+                        new_active = bag.pokemon.switch_pokemon(old_active, index)
+                        if new_active:
+                            player.set_state("active_pokemon", new_active)
+                            player.set_state("bag", bag)
+                            player.set_current_menu(None)
+                            return [
+                                ServerMessage(player, f"{new_active.name} is now your active Pokémon!"),
+                                OptionsMessage(self, player, [], destroy=True)
+                            ]
+                    return []
+
+            switch_menu = SwitchMenu()
+            player.set_current_menu(switch_menu)
+
+            return [
+                ServerMessage(player, "Choose a Pokémon to set as your active Pokémon:"),
+                OptionsMessage(switch_menu, player, options)
+            ]
 
         keybinds["h"] = give_hint
         keybinds["v"] = view_active_pokemon
+        keybinds["s"] = switch_active_pokemon
         return keybinds
     
     
