@@ -23,7 +23,7 @@ from .custom_pressure_plates import *
 from .custom_NPCs import ProfessorOak
 from .custom_buildings import PokemonCenter
 
-class ExampleHouse(Map):
+class PokemonHouse(Map):
     MAIN_ENTRANCE = True
     def __init__(self) -> None:
         super().__init__(
@@ -296,11 +296,13 @@ class ExampleHouse(Map):
         self._add_trees(objects, (1, 28), (self._map_rows - 1, 28), step = 2,  direction="vertical")
         # Top row
         self._add_trees(objects, (0, 2), (0, self._map_cols - 2), step=2)
-        
-        
+            
         # Add tree rows above entry path
-        for tree_row in [21, 22]:
-            self._add_trees(objects, (tree_row, 4), (tree_row, 27),step=2)
+        self._add_trees(objects, (21, 4), (21, 27), step=2)
+        self._add_trees(objects, (22, 4), (22, 23), step=2)
+        # Professor Oak stands at (24, 24)
+        self._add_trees(objects, (22, 26), (22, 27), step=2)
+        
 
         self._add_tile_line(objects, 'poke_sand_up', start=(25, 4), end=(25, 25))
         self._add_tile_line(objects, 'poke_sand_down', start=(26, 2), end=(26, 25))
