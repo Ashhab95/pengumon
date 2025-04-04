@@ -15,11 +15,7 @@ from .items import *
 from .pokeball import *
 from .pokedex import *
 from enum import Enum, auto
-
-
-class PokeCounter(Counter):
-    def __init__(self, npc: "NPC", image_name="f") -> None:
-        super().__init__(image_name, npc)
+from .custom_pressure_plates import PokeCounter
 
 
 class PokemonCenter(Map):
@@ -41,11 +37,12 @@ class PokemonCenter(Map):
                 return [ServerMessage(player, "No active Pokémon found.")]
 
             active_pokemon = Pokemon.from_list(data)
+
             name = active_pokemon.name
             level = active_pokemon.level
             current_hp = active_pokemon.current_health
             max_hp = active_pokemon.max_health
-            p_type = active_pokemon.p_type
+            p_type = active_pokemon.p_type.name
             xp = active_pokemon.xp
             evo_level = active_pokemon.evolution_state.get_evo_level()
             attacks = active_pokemon.known_attacks
@@ -64,7 +61,7 @@ class PokemonCenter(Map):
 
             return [
                 DisplayStatsMessage(
-                    sender=self,
+                    sender=player,  # Keybind-triggered messages use player as sender
                     recipient=player,
                     stats=stats_lines,
                     top_image_path=f"image/Pokemon/{name}_front.png",
@@ -215,9 +212,9 @@ class PokemonCenter(Map):
 
         nurse = Nurse(
             encounter_text="Hello, I am Nurse Joy, Allow me to heal your active Pokémon!",
-            staring_distance=1,
+            staring_distance=2,
         )
-        objects.append((nurse, Coord(1, 7)))
+        objects.append((nurse, Coord(2, 7)))
         main_counter = PokeCounter(nurse)
         objects.append((main_counter, Coord(0, 4)))
         nurse2 = Nurse(
@@ -226,7 +223,7 @@ class PokemonCenter(Map):
             facing_direction='right'
         )
         objects.append((nurse2, Coord(7, 0)))
-        left_counter = PokeCounter(nurse2,"ff")
+        left_counter = PokeCounter(nurse2, "ff")
         objects.append((left_counter, Coord(6, 0)))
 
         
@@ -250,7 +247,7 @@ class PokemonCenter(Map):
         for obj, coord in objects:
             if not (0 <= coord.y < self._map_rows and 0 <= coord.x < self._map_cols):
                 raise ValueError(
-                    f"❌ Invalid Coord: ({coord.y}, {coord.x}) for object {obj.__class__.__name__}. "
+                    f"Invalid Coord: ({coord.y}, {coord.x}) for object {obj.__class__.__name__}. "
                     f"Map size is ({self._map_rows}, {self._map_cols})"
                 )
     

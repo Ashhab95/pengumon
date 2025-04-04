@@ -261,3 +261,8 @@ class ResetPlate(PressurePlate):
         player.set_state("starter_items_given", None)
 
         return [ServerMessage(player, "All your progress has been reset. You may start fresh!")]
+    
+    
+class PokeCounter(Counter):
+    def __init__(self, npc: "NPC", image_name="f") -> None:
+        super().__init__(image_name, npc)
