@@ -41,7 +41,7 @@ class ProfessorOak(NPC, SelectionInterface):
             bag.pokeballs.add(RegularPokeball())
         
             # Attach the new bag to player
-            player.set_state("bag", bag)
+            player.set_state("bag", bag.to_dict())
             player.set_state("starter_items_given", True)
 
     def player_interacted(self, player: HumanPlayer) -> list[Message]:
@@ -72,7 +72,7 @@ class ProfessorOak(NPC, SelectionInterface):
     def select_option(self, player: HumanPlayer, choice: str) -> list[Message]:
         pokemon = PokemonFactory.create_pokemon(choice)
         player.set_state("starter_pokemon", pokemon.name)
-        player.set_state("active_pokemon", pokemon)
+        player.set_state("active_pokemon", pokemon.to_list())
 
         # Give starter items after selection
         self.give_starter_items(player)
@@ -85,7 +85,7 @@ class ProfessorOak(NPC, SelectionInterface):
     
     
 class Nurse(NPC):
-    def __init__(self, encounter_text: str, staring_distance: int = 0, facing_direction: Literal['up', 'down', 'left', 'right'] ='down') -> None:
+    def __init__(self, encounter_text: str, staring_distance: int = 0, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
         super().__init__(
             name="Nurse Joy",
             image='joy5',
@@ -104,23 +104,26 @@ class Nurse(NPC):
         # Initial dialogue
         messages.append(ServerMessage(player, self._NPC__encounter_text))
 
-        # Get active Pokémon
-        active_pokemon = player.get_state("active_pokemon", None)
-        if active_pokemon is None:
+        # --- Load and heal active Pokémon ---
+        active_data = player.get_state("active_pokemon", None)
+        if active_data is None:
             messages.append(ServerMessage(player, "You don’t have a Pokémon to heal."))
             return messages
 
-        # Heal active Pokémon if needed
+        active_pokemon = Pokemon.from_list(active_data)
+
         if active_pokemon.current_health < active_pokemon.max_health:
             active_pokemon.current_health = active_pokemon.max_health
             messages.append(ServerMessage(player, f"{active_pokemon.name} was fully healed!"))
         else:
             messages.append(ServerMessage(player, f"{active_pokemon.name} is already at full health."))
 
-        # Heal all Pokémon in the bag
-        bag = player.get_state("bag", None)
-        if bag:
+        # --- Load and heal Pokémon in the bag ---
+        bag_data = player.get_state("bag", None)
+        if bag_data:
+            bag = Bag.from_dict(bag_data)
             healed_any = False
+
             for pokeball in bag.pokemon.stored_pokemon:
                 if not pokeball.is_empty():
                     pokemon = pokeball.captured_pokemon
@@ -132,7 +135,9 @@ class Nurse(NPC):
             if not healed_any:
                 messages.append(ServerMessage(player, "All Pokémon in your bag are already at full health."))
 
-            player.set_state("bag", bag)
+            player.set_state("bag", bag.to_dict())
 
-        player.set_state("active_pokemon", active_pokemon)
+        # Save updated active Pokémon
+        player.set_state("active_pokemon", active_pokemon.to_list())
+
         return messages

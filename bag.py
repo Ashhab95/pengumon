@@ -224,13 +224,11 @@ class Bag:
             "pokemon": self.pokemon.to_list()
         }
 
-    def from_dict(self, data: Dict[str, Any]):
-        self.potions.from_dict(data.get("potions", {}))
-        self.pokeballs.from_dict(data.get("pokeballs", {}))
-        self.pokemon.from_list(data.get("pokemon", []))
+    @staticmethod
+    def from_dict(data: Dict[str, Any]) -> "Bag":
+        bag = Bag()
+        bag.potions.from_dict(data.get("potions", {}))
+        bag.pokeballs.from_dict(data.get("pokeballs", {}))
+        bag.pokemon.from_list(data.get("pokemon", []))
+        return bag
         
-    def save_bag(player, bag: Bag):
-        player.set_state("bag", bag.to_dict())
-
-    def load_bag(player) -> Bag:
-        return Bag.from_dict(player.get_state("bag"))

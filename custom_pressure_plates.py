@@ -39,15 +39,18 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
 
     def player_entered(self, player) -> list[Message]:
         # This is a safeguard - only allow battle if player has chosen starter pokemon
-        active_pokemon = player.get_state("active_pokemon", None)
-        if active_pokemon is None:
+        poke_data = player.get_state("active_pokemon", None)
+        if poke_data is None:
             return [ServerMessage(player, "You don't have a Pokémon! Visit Professor Oak to choose your starter.")]
-        
+
+        active_pokemon = Pokemon.from_list(poke_data)
+
         if active_pokemon.is_fainted():
             return [ServerMessage(player, "Your active Pokémon is fainted! Fainted Pokémon cannot battle.")]
-        
+
         self.__player = player
         self.__battle = PokemonBattleManager(player, self.__wild_pokemon_name)
+        self.__battle._PokemonBattleManager__player_pokemon = active_pokemon  # override with deserialized object
         self.__turn_stage = TurnStage.INTRO
         self.__last_action_time = time.time()
 
@@ -59,9 +62,10 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
             return []
 
         messages = self.__battle.update()
-        
+
         if self.__battle.is_over():
-            self.__player.set_state("active_pokemon", self.__battle.get_player_pokemon())
+            updated_pokemon = self.__battle.get_player_pokemon()
+            self.__player.set_state("active_pokemon", updated_pokemon.to_list())
             self.__player.set_current_menu(None)
             self.__battle = None
 
@@ -193,12 +197,13 @@ class PotionPressurePlate(PressurePlate):
     def player_entered(self, player) -> list:
         potion = self.potion_class()
 
-        # Add potion to the player's bag
-        bag = player.get_state("bag")
+        # Load and update bag
+        bag_data = player.get_state("bag")
+        bag = Bag.from_dict(bag_data)
         bag.potions.add(potion)
-        player.set_state("bag", bag)
+        player.set_state("bag", bag.to_dict())
 
-        # Remove this pressure plate from the map using the provided position
+        # Remove this pressure plate from the map
         if self.__pos is not None:
             game_map: Map = player.get_current_room()
             game_map.remove_from_grid(map_obj=self, start_pos=self.__pos)
@@ -212,7 +217,7 @@ class PokeballPressurePlate(PressurePlate):
         self.pokeball_class = random.choice(pokeball_classes)
         self.__pos = position
 
-        # Determine image name based on pokeball type
+        # Determine image name based on Pokeball type
         pokeball_to_image = {
             RegularPokeball: "poke",
             GreatBall: "great",
@@ -226,12 +231,13 @@ class PokeballPressurePlate(PressurePlate):
     def player_entered(self, player) -> list:
         pokeball = self.pokeball_class()
 
-        # Add pokeball to the player's bag
-        bag = player.get_state("bag")
+        # Load and update the player's bag
+        bag_data = player.get_state("bag")
+        bag = Bag.from_dict(bag_data)
         bag.pokeballs.add(pokeball)
-        player.set_state("bag", bag)
+        player.set_state("bag", bag.to_dict())
 
-        # Remove this pressure plate from the map using the provided position
+        # Remove this pressure plate from the map
         if self.__pos is not None:
             game_map: Map = player.get_current_room()
             game_map.remove_from_grid(map_obj=self, start_pos=self.__pos)

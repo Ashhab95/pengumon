@@ -8,9 +8,10 @@ if TYPE_CHECKING:
     from tiles.map_objects import *
     from message import *
 
-from .pokemon import PokemonFactory
 from enum import Enum, auto
 import time
+from .pokemon import PokemonFactory
+from .bag import Bag
 from .enemyAI import *
 from .observers import BattleMessageNotifier 
 
@@ -36,13 +37,18 @@ class TurnStage(Enum):
 class PokemonBattleManager:
     def __init__(self, player, wild_pokemon_name: str):
         self.__player = player
-        self.__player_pokemon = player.get_state("active_pokemon", None)
+    
+        active_data = player.get_state("active_pokemon", None)
+        self.__player_pokemon = Pokemon.from_list(active_data) 
+
         self.__enemy_pokemon = PokemonFactory.create_pokemon(wild_pokemon_name)
         self.__used_dodge = False # player and enemy share this flag (can be done since this game is turn-based)
         self.__turn_stage = TurnStage.INTRO
         self.__current_option = None
         self.__last_action_time = time.time()
         self.__switch_options_map = {}
+        
+    
 
         # Observer setup
         self.__battle_messages: list[Message] = []
@@ -134,20 +140,23 @@ class PokemonBattleManager:
         for i, attack in enumerate(self.__player_pokemon.known_attacks):
             attack_options.append(f"{i}: {attack['name']} ({attack['damage']})")
 
-        utility_options = ["Dodge", "Run","Bag"]
+        utility_options = ["Dodge", "Run", "Bag"]
+
+        # Reconstruct bag from saved dict state
+        bag_data = self.__player.get_state("bag")
+        bag = Bag.from_dict(bag_data)
 
         # Add switch option if other Pokémon are available (not fainted)
-        bag = self.__player.get_state("bag")
         switch_option = []
         if bag.pokemon.get_available_pokemon():
             switch_option.append("Switch Pokemon")
 
-        full_options = attack_options + utility_options + switch_option # combine all options
+        full_options = attack_options + utility_options + switch_option  # combine all options
 
         self.__last_action_time = time.time()
         self.__turn_stage = TurnStage.AWAIT_INPUT
 
-        return [OptionsMessage(self.__player, self.__player, full_options)] # present options to player
+        return [OptionsMessage(self.__player, self.__player, full_options)]  # present options to player
 
     def _handle_await_input(self) -> list[Message]:
         messages = []
@@ -165,7 +174,8 @@ class PokemonBattleManager:
         # Parse the selected item
             if selected.startswith("Potion:"):
                 item_key = selected.split("Potion: ")[1].lower().replace(" ", "_")
-                bag = self.__player.get_state("bag")
+                bag_data = self.__player.get_state("bag")
+                bag = Bag.from_dict(bag_data)
                 potion = bag.potions.remove(item_key)
                 
                 if potion:
@@ -175,8 +185,8 @@ class PokemonBattleManager:
                     
                     if success:
                         # Update player state
-                        self.__player.set_state("active_pokemon", self.__player_pokemon)
-                        self.__player.set_state("bag", bag)
+                        self.__player.set_state("active_pokemon", self.__player_pokemon.to_list())
+                        self.__player.set_state("bag", bag.to_dict())
                         
                         messages.append(ServerMessage(
                             self.__player,
@@ -191,7 +201,7 @@ class PokemonBattleManager:
                     else:
                         # Return the potion to the bag if not used
                         bag.potions.add(potion)
-                        self.__player.set_state("bag", bag)
+                        self.__player.set_state("bag", bag.to_dict())
                         
                         messages.append(ServerMessage(
                             self.__player, 
@@ -204,13 +214,16 @@ class PokemonBattleManager:
                     
             elif selected.startswith("Ball:"):
                 item_key = selected.split("Ball: ")[1].lower().replace(" ", "_")
-                bag = self.__player.get_state("bag")
+                print(f"Item key: {item_key}")
+                bag_data = self.__player.get_state("bag")
+                bag = Bag.from_dict(bag_data)
                 pokeball = bag.pokeballs.remove(item_key)
+                print(pokeball.name)
                 
                 if pokeball:
                     messages.append(ServerMessage(
                         self.__player,
-                        f"({name}) threw a {pokeball.get_name()}!"
+                        f"({name}) threw a {pokeball.name}!"
                     ))
                     
                     # Try to catch the Pokémon using the modified use method
@@ -224,7 +237,7 @@ class PokemonBattleManager:
                         
                         # Add the pokeball with the caught Pokémon to the player's bag
                         bag.pokemon.add(pokeball)
-                        self.__player.set_state("bag", bag)
+                        self.__player.set_state("bag", bag.to_dict())
                         
                         # End the battle
                         self.__turn_stage = TurnStage.END
@@ -248,11 +261,12 @@ class PokemonBattleManager:
 
             index = self.__switch_options_map.get(selected)
             if index is not None:
-                bag = self.__player.get_state("bag")
+                bag_data = self.__player.get_state("bag")
+                bag = Bag.from_dict(bag_data)
                 new_active = bag.pokemon.switch_pokemon(self.__player_pokemon, index)
                 if new_active:
-                    self.__player.set_state("active_pokemon", new_active)
-                    self.__player.set_state("bag", bag)
+                    self.__player.set_state("active_pokemon", new_active.to_list())  
+                    self.__player.set_state("bag", bag.to_dict())
                     self.__player_pokemon = new_active
                     self.__turn_stage = TurnStage.ENEMY_WAIT
                     return [
@@ -264,7 +278,8 @@ class PokemonBattleManager:
 
         # Add handler for "Bag" option selection
         if selected == "Bag":
-            bag = self.__player.get_state("bag")
+            bag_data = self.__player.get_state("bag")
+            bag = Bag.from_dict(bag_data)
             
             # Create options list for potions
             potion_options = []
@@ -313,7 +328,8 @@ class PokemonBattleManager:
                 self.__turn_stage = TurnStage.ENEMY_WAIT
 
         elif selected == "Switch Pokemon":
-            bag = self.__player.get_state("bag")
+            bag_data = self.__player.get_state("bag")
+            bag = Bag.from_dict(bag_data)
             available = bag.pokemon.get_available_pokemon()
             if not available:
                 messages.append(ServerMessage(self.__player, "No healthy Pokémon available to switch."))
@@ -370,7 +386,7 @@ class PokemonBattleManager:
                 messages.append(self._make_battle_message())
 
                 if result.get("evolved"):
-                    self.__player.set_state("active_pokemon", result["evolved"])
+                    self.__player.set_state("active_pokemon", result["evolved"].to_list())
                     self.__player_pokemon = result["evolved"]
                     messages.append(ServerMessage(
                         self.__player,
@@ -380,6 +396,7 @@ class PokemonBattleManager:
         self.__used_dodge = False
 
         # Flush observer messages before fainting logic
+        print("Battle buffer before flush in player attack:", self.__battle_messages)
         messages.extend(self.__battle_messages)
         self.__battle_messages.clear()
 
@@ -397,7 +414,14 @@ class PokemonBattleManager:
 
     def _handle_enemy_turn(self):
         messages = []
-        ai: EnemyAI = self.__player.get_state("enemy_ai", MediumAI())
+        ai_level = self.__player.get_state("enemy_ai", "medium")  # stored as a string
+        if ai_level == "easy":
+            ai = EasyAI()
+        elif ai_level == "hard":
+            ai = HardAI()
+        else:
+            ai = MediumAI()
+
         action = ai.choose_action(self.__enemy_pokemon, self.__player_pokemon)
 
         if action == "Dodge":
@@ -423,6 +447,7 @@ class PokemonBattleManager:
         self.__used_dodge = False
 
         # Flush health change messages from observers
+        print("Battle buffer before flush in enemy turn:", self.__battle_messages)
         messages.extend(self.__battle_messages)
         self.__battle_messages.clear()
 
@@ -439,7 +464,8 @@ class PokemonBattleManager:
         return messages
 
     def _handle_end(self) -> list[Message]:
-        bag = self.__player.get_state("bag")
+        bag_data = self.__player.get_state("bag")
+        bag = Bag.from_dict(bag_data)
         available = bag.pokemon.get_available_pokemon()
 
         if self.__player_pokemon.is_fainted() and available:
@@ -447,8 +473,8 @@ class PokemonBattleManager:
             new_active = bag.pokemon.switch_pokemon(self.__player_pokemon, index)
 
             if new_active:
-                self.__player.set_state("active_pokemon", new_active)
-                self.__player.set_state("bag", bag)
+                self.__player.set_state("active_pokemon", new_active.to_list())  
+                self.__player.set_state("bag", bag.to_dict())                    
                 self.__player_pokemon = new_active
                 self.__turn_stage = TurnStage.PLAYER_TURN
 
