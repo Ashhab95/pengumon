@@ -28,7 +28,7 @@ class PokemonCenter(Building):
         super().__init__('p1', door_position=Coord(4, 2), linked_room_str=linked_room_str)
 
 class ExampleHouse(Map):
-    
+    MAIN_ENTRANCE = True
     def __init__(self) -> None:
         super().__init__(
             name="Pokemon House",
@@ -212,7 +212,7 @@ class ExampleHouse(Map):
         objects: list[tuple[MapObject, Coord]] = []
         
         # Add a door to exit back to Trottier Town
-        door = Door('tube', linked_room="Trottier Town")
+        door = Door('tube', linked_room="Trottier Town", is_main_entrance=True)
         objects.append((door, Coord(26, 27)))
         
         switch_plate = SwitchActivePokemonPlate()
