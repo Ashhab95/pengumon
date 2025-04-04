@@ -155,7 +155,39 @@ class PokemonCenter(Map):
                 ServerMessage(player, "Choose a Pokémon to set as your active Pokémon:"),
                 OptionsMessage(switch_menu, player, options)
             ]
+            
+        def show_bag_contents(player: HumanPlayer) -> list[Message]:
+            bag_data = player.get_state("bag", {})
+            bag = Bag.from_dict(bag_data)
 
+            # Get potion and pokeball counts
+            potion_counts = bag.potions._get_counts()
+            pokeball_counts = bag.pokeballs._get_counts()
+
+            lines = ["Potion Compartment:"]
+            for key, count in potion_counts.items():
+                if count > 0:
+                    lines.append(f"  {key.replace('_', ' ').title()}: {count}")
+
+            lines.append("")  # Add a blank line between sections
+            lines.append("Pokéball Compartment:")
+            for key, count in pokeball_counts.items():
+                if count > 0:
+                    lines.append(f"  {key.replace('_', ' ').title()}: {count}")
+
+            return [
+                DisplayStatsMessage(
+                    sender=player,  
+                    recipient=player,
+                    stats=lines,
+                    top_image_path="image/tile/utility/Empty.png",
+                    bottom_image_path="image/tile/utility/Empty.png",
+                    window_title="Bag Contents",
+                    scale=0.75
+                )
+            ]
+
+        keybinds["b"] = show_bag_contents
         keybinds["h"] = give_hint
         keybinds["v"] = view_active_pokemon
         keybinds["s"] = switch_active_pokemon
