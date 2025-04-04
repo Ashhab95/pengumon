@@ -39,8 +39,8 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
         if active_pokemon is None:
             return [ServerMessage(player, "You don't have a Pokémon! Visit Professor Oak to choose your starter.")]
         
-        # TODO
-        # Check if active pokemon is fainted and pokemon in inventory is also fainted
+        if active_pokemon.is_fainted():
+            return [ServerMessage(player, "Your active Pokémon is fainted! Fainted Pokémon cannot battle.")]
         
         self.__player = player
         self.__battle = PokemonBattleManager(player, self.__wild_pokemon_name)
