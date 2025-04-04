@@ -48,8 +48,9 @@ class ProfessorOak(NPC, SelectionInterface):
         messages: list[Message] = []
 
         starter_pokemon = player.get_state("starter_pokemon", None)
+        active_pokemon = player.get_state("active_pokemon", None)
 
-        if starter_pokemon:
+        if starter_pokemon and active_pokemon:
             messages.append(ServerMessage(player, f"You have already chosen {starter_pokemon} as your starter Pokémon!"))
             return messages
 
