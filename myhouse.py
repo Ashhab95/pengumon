@@ -106,12 +106,9 @@ class ExampleHouse(Map):
 
         # Define pools of Pokémon based on evolution stage
         evolution_pools = {
-            1: ["Charmander", "Squirtle", "Bulbasaur"],
-            2: ["Charmeleon", "Wartortle", "Ivysaur"],
-            3: ["Charizard", "Blastoise", "Venusaur"],
-            4: ["Chimchar", "Piplup", "Turtwig"],
-            5: ["Monferno", "Prinplup", "Grotle"],
-            6: ["Infernape", "Empoleon", "Torterra"]
+            1: ["Charmander", "Squirtle", "Bulbasaur", "Chimchar", "Piplup", "Turtwig"],
+            2: ["Charmeleon", "Wartortle", "Ivysaur", "Monferno", "Prinplup", "Grotle"],
+            3: ["Charizard", "Blastoise", "Venusaur", "Infernape", "Empoleon", "Torterra"],
         }
 
         for i in range(i_start, i_end + 1):
