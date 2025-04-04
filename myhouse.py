@@ -21,11 +21,7 @@ from typing import Literal
 from collections.abc import Callable
 from .custom_pressure_plates import *
 from .custom_NPCs import ProfessorOak
-
-
-class PokemonCenter(Building):
-    def __init__(self, linked_room_str: str = "") -> None:
-        super().__init__('p1', door_position=Coord(4, 2), linked_room_str=linked_room_str)
+from .custom_buildings import PokemonCenter
 
 class ExampleHouse(Map):
     MAIN_ENTRANCE = True
