@@ -111,7 +111,7 @@ class Nurse(NPC):
     def done_talking(self, player) -> bool:
         """Override to allow re-interaction even after first contact."""
         return False
-    
+
     def player_interacted(self, player: HumanPlayer) -> list[Message]:
         messages: list[Message] = []
 
@@ -124,13 +124,29 @@ class Nurse(NPC):
             messages.append(ServerMessage(player, "You don’t have a Pokémon to heal."))
             return messages
 
-        if active_pokemon.current_health == active_pokemon.max_health:
-            messages.append(ServerMessage(player, "Your Pokémon is already at full health."))
-            return messages
+        # Heal active Pokémon if needed
+        if active_pokemon.current_health < active_pokemon.max_health:
+            active_pokemon.current_health = active_pokemon.max_health
+            messages.append(ServerMessage(player, f"{active_pokemon.name} was fully healed!"))
+        else:
+            messages.append(ServerMessage(player, f"{active_pokemon.name} is already at full health."))
 
-        # Heal the Pokémon
-        active_pokemon.current_health = active_pokemon.max_health
+        # Heal all Pokémon in the bag
+        bag = player.get_state("bag", None)
+        if bag:
+            healed_any = False
+            for pokeball in bag.pokemon.stored_pokemon:
+                if not pokeball.is_empty():
+                    pokemon = pokeball.captured_pokemon
+                    if pokemon.current_health < pokemon.max_health:
+                        pokemon.current_health = pokemon.max_health
+                        healed_any = True
+                        messages.append(ServerMessage(player, f"{pokemon.name} in your bag was fully healed!"))
+
+            if not healed_any:
+                messages.append(ServerMessage(player, "All Pokémon in your bag are already at full health."))
+
+            player.set_state("bag", bag)
+
         player.set_state("active_pokemon", active_pokemon)
-        messages.append(ServerMessage(player, f"{active_pokemon.name} was fully healed!"))
-
         return messages

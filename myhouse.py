@@ -401,7 +401,7 @@ class ExampleHouse(Map):
 
         self._add_bushes_with_plates(objects, (7, 2), (12, 5), evolution_stage=2, plate_probability=0.6)
         self._add_bushes_with_plates(objects, (3, 8), (4,14), evolution_stage=1, plate_probability=0.6)
-        self._add_bushes_with_plates(objects, (12, 8), (14,12), evolution_stage=1, plate_probability=0.6)
+        self._add_bushes_with_plates(objects, (12, 8), (14,12), evolution_stage=2, plate_probability=0.6)
         self._add_bushes_with_plates(objects, (3, 2), (5, 4), evolution_stage=3, plate_probability=0.5)
         objects.append((MapObject.get_obj('rock_903'), Coord(3,5)))
         objects.append((MapObject.get_obj('rock_903'), Coord(4,5)))

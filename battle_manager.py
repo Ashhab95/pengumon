@@ -439,7 +439,24 @@ class PokemonBattleManager:
         return messages
 
     def _handle_end(self) -> list[Message]:
-        """Send end message and destroy windows."""
+        bag = self.__player.get_state("bag")
+        available = bag.pokemon.get_available_pokemon()
+
+        if self.__player_pokemon.is_fainted() and available:
+            index, new_ball = random.choice(available)
+            new_active = bag.pokemon.switch_pokemon(self.__player_pokemon, index)
+
+            if new_active:
+                self.__player.set_state("active_pokemon", new_active)
+                self.__player.set_state("bag", bag)
+                self.__player_pokemon = new_active
+                self.__turn_stage = TurnStage.PLAYER_TURN
+
+                return [
+                    ServerMessage(self.__player, f"Your Pokémon fainted, but you have more! Switching to {new_active.name}..."),
+                    self._make_battle_message()
+                ]
+
         messages = [
             ServerMessage(self.__player, "The battle has ended!"),
             OptionsMessage(self.__player, self.__player, [], destroy=True),
