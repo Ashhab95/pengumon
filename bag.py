@@ -44,6 +44,13 @@ class ItemCompartment:
     def _get_counts(self) -> Dict[str, int]:
         raise NotImplementedError
 
+    def to_dict(self) -> Dict[str, int]:
+        return self._get_counts().copy()
+
+    def from_dict(self, data: Dict[str, int]):
+        for key in self._get_counts().keys():
+            self._get_counts()[key] = data.get(key, 0)
+
 
 class PotionCompartment(ItemCompartment):
     def __init__(self):
@@ -74,9 +81,9 @@ class PotionCompartment(ItemCompartment):
         if key == "small": return SmallPotion()
         elif key == "medium": return MediumPotion()
         elif key == "large": return LargePotion()
-        elif key == "small_revive": return SmallPotion(revive=True)
-        elif key == "medium_revive": return MediumPotion(revive=True)
-        elif key == "large_revive": return LargePotion(revive=True)
+        elif key == "small_revive": return RevivePotion(SmallPotion())
+        elif key == "medium_revive": return RevivePotion(MediumPotion())
+        elif key == "large_revive": return RevivePotion(LargePotion())
         return None
 
     def _get_counts(self) -> Dict[str, int]:
@@ -192,9 +199,38 @@ class PokemonRoster:
             return self.stored_pokemon[index].switch_pokemon(pokemon)
         return None
 
+    def to_list(self) -> List[List[Any]]:
+        return [ball.captured_pokemon.to_list() for ball in self.stored_pokemon if not ball.is_empty()]
+
+    def from_list(self, data: List[List[Any]]):
+        self.stored_pokemon = []
+        for pmon_data in data:
+            pmon = Pokemon.from_list(pmon_data)
+            ball = RegularPokeball()
+            ball.add(pmon)
+            self.stored_pokemon.append(ball)
+
 
 class Bag:
     def __init__(self):
         self.potions = PotionCompartment()
         self.pokeballs = PokeballCompartment()
         self.pokemon = PokemonRoster()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "potions": self.potions.to_dict(),
+            "pokeballs": self.pokeballs.to_dict(),
+            "pokemon": self.pokemon.to_list()
+        }
+
+    def from_dict(self, data: Dict[str, Any]):
+        self.potions.from_dict(data.get("potions", {}))
+        self.pokeballs.from_dict(data.get("pokeballs", {}))
+        self.pokemon.from_list(data.get("pokemon", []))
+        
+    def save_bag(player, bag: Bag):
+        player.set_state("bag", bag.to_dict())
+
+    def load_bag(player) -> Bag:
+        return Bag.from_dict(player.get_state("bag"))

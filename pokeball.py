@@ -69,6 +69,22 @@ class Pokeball(Item):
     def is_pokemon_fainted(self) -> bool:
         """Check if the Pokémon inside has fainted"""
         return self.captured_pokemon.is_fainted()
+    
+    def to_list(self):
+        """Serialize to primitive type list for storage."""
+        return [
+            self.name,
+            self.catch_rate,
+            self.captured_pokemon.to_list() if self.captured_pokemon else None
+        ]
+
+    @staticmethod
+    def from_list(data):
+        name, catch_rate, pokemon_data = data
+        ball = Pokeball(name, catch_rate)
+        if pokemon_data:
+            ball.captured_pokemon = Pokemon.from_list(pokemon_data)
+        return ball
 
 
 class RegularPokeball(Pokeball):

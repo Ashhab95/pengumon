@@ -49,6 +49,13 @@ class Potion(Item):
     def is_revive(self) -> bool:
         return False
 
+    def to_list(self) -> list:
+        return ["potion", self.name]
+
+    @staticmethod
+    def from_list(data: list) -> 'Potion':
+        return PotionFlyweightFactory.get_potion(data[1])
+
 # ---- Concrete Potions ----
 class SmallPotion(Potion):
     def __init__(self):
@@ -94,6 +101,14 @@ class RevivePotion(PotionDecorator):
         if pokemon.is_fainted():
             pokemon.current_health = 1
         return self.health_potion.use(pokemon)
+
+    def to_list(self) -> list:
+        return ["revive_potion", self.health_potion.get_name()]
+
+    @staticmethod
+    def from_list(data: list) -> 'RevivePotion':
+        base_potion = PotionFlyweightFactory.get_potion(data[1])
+        return RevivePotion(base_potion)
 
 # ---- Flyweight Factory ----
 class PotionFlyweightFactory:

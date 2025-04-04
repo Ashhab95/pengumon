@@ -221,6 +221,36 @@ class Pokemon:
             evolved_pokemon.evolution_state = FinalEvolutionState()
 
         return evolved_pokemon
+    
+    def to_list(self) -> list:
+        return [
+            self.name,
+            self.max_health,
+            self.current_health,
+            self.p_type,
+            self.level,
+            self.xp,
+            self.known_attacks,
+            self.evolution_state.__class__.__name__
+        ]
+
+    @staticmethod
+    def from_list(data: list) -> 'Pokemon':
+        name, max_health, current_health, p_type, level, xp, known_attacks, evo_class = data
+        poke = Pokemon(name)
+        poke.max_health = max_health
+        poke.current_health = current_health
+        poke.p_type = p_type
+        poke.level = level
+        poke.xp = xp
+        poke.known_attacks = known_attacks
+        if evo_class == "BaseEvolutionState":
+            poke.evolution_state = BaseEvolutionState()
+        elif evo_class == "SecondEvolutionState":
+            poke.evolution_state = SecondEvolutionState()
+        elif evo_class == "FinalEvolutionState":
+            poke.evolution_state = FinalEvolutionState()
+        return poke
 
 
 # Pokemon Factory
