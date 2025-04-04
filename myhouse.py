@@ -28,6 +28,7 @@ class PokemonCenter(Building):
         super().__init__('p1', door_position=Coord(4, 2), linked_room_str=linked_room_str)
 
 class ExampleHouse(Map):
+    
     def __init__(self) -> None:
         super().__init__(
             name="Pokemon House",
@@ -176,8 +177,14 @@ class ExampleHouse(Map):
                 ["Use potions from your bag", "to heal your Pokémon."],
                 ["Catch fainted wild Pokémon", "with a Pokéball!"],
                 ["Step on the blue pressure plate", "to switch your active Pokémon."],
-                ["Pokémon van evolve", "after gaining enough XP."],
-                ["You can run from battles,", "but it's not always successful!"]
+                ["Pokémon can evolve", "after gaining enough XP."],
+                ["You can run from battles,", "but it's not always successful!"],
+                ["You can view the stats of your active Pokemon", "by clicking on v!"],
+                ["Fire types are strong against grass types"],
+                ["Water types are strong against fire types"],
+                ["Grass types are strong against water types"],
+                ["You can heal your Pokémon by going to the Pokémon center"],
+                ["Use potions to gain an advantage!"]
             ]
             
             hint_lines = random.choice(hints_pool)
@@ -243,7 +250,7 @@ class ExampleHouse(Map):
         self.place(objects, 'top_right', (25, 26))
         self.place(objects, 'bottom_right', (26, 26))
 
-        sign = Sign(text="You can view the stats of your active Pokemon by clicking on v! ")
+        sign = Sign(text="You can view hints by clicking on h! ")
         objects.append((sign, Coord(26, 2)))
 
         prof = ProfessorOak(
