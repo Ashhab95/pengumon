@@ -233,8 +233,8 @@ class PokemonCenter(Map):
         objects.append((MapObject.get_obj('sofa_table'), Coord(10, 11)))
         objects.append((MapObject.get_obj('sofa_table_2'), Coord(11, 0)))
         objects.append((MapObject.get_obj('bookshelf'), Coord(1, 0)))
-        objects.append(((MapObject('poke_floor', passable=True)), Coord(7,6)))
-        objects.append(((MapObject('shadow', passable=True)), Coord(4,4)))
+        # objects.append(((MapObject('poke_floor', passable=True)), Coord(7,6)))
+        # objects.append(((MapObject('shadow', passable=True)), Coord(4,4)))
         objects.append((MapObject.get_obj('poke_tree'), Coord(2, 14)))
         objects.append((MapObject.get_obj('poke_tree'), Coord(12, 14)))
         
