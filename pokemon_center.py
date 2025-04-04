@@ -20,7 +20,7 @@ class PokemonCenter(Map):
         super().__init__(
             name="Pokemon Center",
             description="Welcome to the Pokémon Center",
-            size=(16, 16),
+            size=(15, 15),
             entry_point=Coord(13, 7),
             background_tile_image='poke_center_tile',
             background_music='killswitch'
@@ -114,11 +114,17 @@ class PokemonCenter(Map):
         objects.append((MapObject.get_obj('poke_tree'), Coord(2, 14)))
         objects.append((MapObject.get_obj('poke_tree'), Coord(12, 14)))
         
-        
-        
-       
-        
-        
+        self._validate_coordinates(objects)
 
         return objects
+        
+    def _validate_coordinates(self, objects: list[tuple["MapObject", "Coord"]]) -> None:
+        """Raises an error if any Coord in the object list is outside the map bounds."""
+        for obj, coord in objects:
+            if not (0 <= coord.y < self._map_rows and 0 <= coord.x < self._map_cols):
+                raise ValueError(
+                    f"❌ Invalid Coord: ({coord.y}, {coord.x}) for object {obj.__class__.__name__}. "
+                    f"Map size is ({self._map_rows}, {self._map_cols})"
+                )
+    
 
