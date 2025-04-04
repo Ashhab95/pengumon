@@ -20,7 +20,7 @@ class PokemonCenter(Map):
         super().__init__(
             name="Pokemon Center",
             description="Welcome to the Pokémon Center",
-            size=(15, 15),
+            size=(20, 20),
             entry_point=Coord(13, 7),
             background_tile_image='poke_center_tile',
             background_music='killswitch'
