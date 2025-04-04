@@ -330,7 +330,11 @@ class PokemonHouse(Map):
         self._add_trees(objects, (21, 4), (21, 27), step=2)
         self._add_trees(objects, (22, 4), (22, 23), step=2)
         # Professor Oak stands at (24, 24)
-        self._add_trees(objects, (22, 26), (22, 27), step=2)
+        reset_plate = ResetPlate()
+        objects.append((reset_plate, Coord(24, 27)))
+        
+        choose_difficulty_plate = ChooseDifficultyPlate()
+        objects.append((choose_difficulty_plate, Coord(24, 26)))
         
 
         self._add_tile_line(objects, 'poke_sand_up', start=(25, 4), end=(25, 25))
@@ -352,9 +356,6 @@ class PokemonHouse(Map):
             staring_distance=3,
         )
         objects.append((prof, Coord(24, 24)))
-        
-        choose_difficulty_plate = ChooseDifficultyPlate()
-        objects.append((choose_difficulty_plate, Coord(20, 27)))
 
         self._add_trees(objects, (15, 2), (15, 16),step=1, tree_type="tree_f")
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)

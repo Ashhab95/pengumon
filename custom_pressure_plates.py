@@ -246,3 +246,18 @@ class PokeballPressurePlate(PressurePlate):
             game_map.remove_from_grid(map_obj=self, start_pos=self.__pos)
 
         return [ServerMessage(player, f"You found a {pokeball.name}! It has been added to your bag.")]
+    
+    
+class ResetPlate(PressurePlate):
+    def __init__(self):
+        super().__init__(image_name="red_down_arrow", stepping_text="Resetting your progress...")
+
+    def player_entered(self, player: HumanPlayer) -> list[Message]:
+        # Reset all persistent player state variables
+        player.set_state("starter_pokemon", None)
+        player.set_state("active_pokemon", None)
+        player.set_state("enemy_ai", None)
+        player.set_state("bag", None)
+        player.set_state("starter_items_given", None)
+
+        return [ServerMessage(player, "All your progress has been reset. You may start fresh!")]
