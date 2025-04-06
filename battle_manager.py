@@ -17,7 +17,7 @@ from .observers import BattleMessageNotifier
 
 # Global constants
 PLAYER_CHANCE_TO_DODGE = 0.5
-OPPONENT_CHANCE_TO_DODGE = 0.999
+OPPONENT_CHANCE_TO_DODGE = 0.5
 ENEMY_RESPONSE_TIME = 3
 PLAYER_CHANCE_TO_RUN = 0.7
 

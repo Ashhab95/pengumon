@@ -5,6 +5,23 @@ class PokemonType(Enum):
     WATER = "Water"
     GRASS = "Grass"
 
+first_evolution_map = {
+    "Charmander": "Charmeleon",
+    "Squirtle": "Wartortle",
+    "Bulbasaur": "Ivysaur",
+    "Chimchar": "Monferno",
+    "Piplup": "Prinplup",
+    "Turtwig": "Grotle"
+}
+
+second_evolution_map = {
+    "Charmeleon": "Charizard",
+    "Wartortle": "Blastoise",
+    "Ivysaur": "Venusaur",
+    "Monferno": "Infernape",
+    "Prinplup": "Empoleon",
+    "Grotle": "Torterra"
+}
 
 pokedex = {
     "Charmander": {

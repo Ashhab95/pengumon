@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Any
-from .pokedex import pokedex, PokemonType
+from .pokedex import *
 from .observers import HealthObserver
 
 # Constants
@@ -63,12 +63,7 @@ class BaseEvolutionState(EvolutionState):
         super().__init__(level=1)
     
     def get_next_evolution(self, pokemon_name):
-        evolution_map = {
-            "Charmander": "Charmeleon",
-            "Squirtle": "Wartortle",
-            "Bulbasaur": "Ivysaur"
-        }
-        return evolution_map.get(pokemon_name)
+        return first_evolution_map.get(pokemon_name)
 
 
 class SecondEvolutionState(EvolutionState):
@@ -85,12 +80,7 @@ class SecondEvolutionState(EvolutionState):
         return GameConstants.SECOND_XP_THRESHOLD
     
     def get_next_evolution(self, pokemon_name: str) -> Optional[str]:
-        evolution_map = {
-            "Charmeleon": "Charizard",
-            "Wartortle": "Blastoise",
-            "Ivysaur": "Venusaur"
-        }
-        return evolution_map.get(pokemon_name)
+        return second_evolution_map.get(pokemon_name)
 
 # Final evolution state
 class FinalEvolutionState(EvolutionState):
@@ -282,7 +272,7 @@ class PokemonFactory:
         import random
         
         # Choose a random Pokemon type
-        starter_options = [ "Charmander", "Squirtle", "Bulbasaur","Chimchar", "Piplup", "Turtwig"]
+        starter_options = [ "Charmander", "Squirtle", "Bulbasaur", "Chimchar", "Piplup", "Turtwig"]
 
         pokemon = PokemonFactory.create_pokemon(random.choice(starter_options))
         
