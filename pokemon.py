@@ -169,7 +169,7 @@ class Pokemon:
         }
 
         if target.is_fainted():
-            self.xp += 10
+            self.xp += 10 * self.evolution_state.get_evo_level() # XP gained from beating pokemon scale based on evolution level
             evolved_pokemon = self.level_up_check()
             if evolved_pokemon:
                 result["evolved"] = evolved_pokemon
