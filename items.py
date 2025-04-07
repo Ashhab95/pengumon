@@ -9,31 +9,40 @@ class PotionConstants:
 
 # ---- Base Item Class ----
 class Item(ABC):
+    """Abstract base class for items."""
     @abstractmethod
     def get_name(self) -> str:
+        """Return the name of the item."""
         pass
 
     @abstractmethod
     def get_value(self) -> int:
+        """Return the item's effect value (e.g., healing)."""
         pass
 
     @abstractmethod
     def use(self, target) -> bool:
+        """Apply the item effect to a target."""
         pass
 
 # ---- Potion Base Class ----
 class Potion(Item):
+    """Basic healing potion."""
     def __init__(self, name: str, heal_value: int):
+        """Initialize potion with name and healing value."""
         self.name = name
         self.heal_value = heal_value
 
     def get_name(self) -> str:
+        """Return the name of the potion."""
         return self.name
 
     def get_value(self) -> int:
+        """Return the healing value of the potion."""
         return self.heal_value
 
     def use(self, pokemon) -> bool:
+        """Heal the Pokémon if it's not fainted or at full health."""
         if pokemon.is_fainted():
             return False
 
@@ -47,43 +56,53 @@ class Potion(Item):
         return True
 
     def is_revive(self) -> bool:
+        """Check if this is a revive potion."""
         return False
 
     def to_list(self) -> list:
+        """Serialize potion for saving."""
         return ["potion", self.name]
 
     @staticmethod
     def from_list(data: list) -> 'Potion':
+        """Deserialize potion from saved data."""
         return PotionFlyweightFactory.get_potion(data[1])
 
 # ---- Concrete Potions ----
 class SmallPotion(Potion):
+    """Small healing potion."""
     def __init__(self):
         super().__init__("Small Potion", PotionConstants.SMALL_HEAL)
 
 class MediumPotion(Potion):
+    """Medium healing potion."""
     def __init__(self):
         super().__init__("Medium Potion", PotionConstants.MEDIUM_HEAL)
 
 class LargePotion(Potion):
+    """Large healing potion."""
     def __init__(self):
         super().__init__("Large Potion", PotionConstants.LARGE_HEAL)
 
 # ---- Abstract Decorator ----
 class PotionDecorator(Potion, ABC):
     def __init__(self, health_potion: Potion):
+        """Wrap a potion to extend its functionality."""
         if isinstance(health_potion, RevivePotion):
             raise ValueError("Cannot decorate a revive potion")
         self.health_potion = health_potion
         super().__init__(health_potion.get_name(), health_potion.get_value())
 
     def get_name(self) -> str:
+        """Return the name of the decorated potion."""
         return self.health_potion.get_name()
 
     def get_value(self) -> int:
+        """Return the healing value of the decorated potion."""
         return self.health_potion.get_value()
 
     def use(self, pokemon) -> bool:
+        """Apply the decorated potion effect."""
         return self.health_potion.use(pokemon)
 
 # ---- Revive Decorator ----
@@ -98,6 +117,7 @@ class RevivePotion(PotionDecorator):
         return True
 
     def use(self, pokemon) -> Dict[str, Any]:
+        """Revive the Pokémon if fainted, then heal."""
         if pokemon.is_fainted():
             pokemon.current_health = 1
         return self.health_potion.use(pokemon)
@@ -116,6 +136,7 @@ class PotionFlyweightFactory:
 
     @classmethod
     def get_potion(cls, potion_type: str) -> Potion:
+        """Return a shared potion instance based on type."""
         key = potion_type.lower()
 
         if key not in cls._flyweights:
