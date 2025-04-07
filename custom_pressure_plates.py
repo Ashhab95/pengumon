@@ -18,6 +18,7 @@ from .pokemon import PokemonFactory
     
 
 class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
+    """Triggers a wild Pokémon battle when stepped on."""
     def __init__(self, wild_pokemon_name: str):
         super().__init__(image_name="bushh", stepping_text=f"You encountered a wild {wild_pokemon_name}!")
         self.__wild_pokemon_name = wild_pokemon_name
@@ -73,6 +74,7 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
 
 
 class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
+    """Allows the player to choose the difficulty level of enemy AI."""
     def __init__(self):
         super().__init__(image_name="hal9000", stepping_text="Choose your battle difficulty!")
 
@@ -110,77 +112,10 @@ class ChooseDifficultyPlate(PressurePlate, SelectionInterface):
 
         return [ServerMessage(player, "Invalid difficulty selection.")]
     
-# Old code as of right now it's broken
-class SwitchActivePokemonPlate(PressurePlate, SelectionInterface):
-    def __init__(self):
-        super().__init__(image_name="blue_circle", stepping_text="You stepped on a Pokémon switching pad!")
-        self.__player = None
-        self.__current_option = None
-        self.__options_map: dict[str, int] = {}  # Maps option strings to compartment indices
-
-    def player_entered(self, player) -> list[Message]:
-        self.__player = player
-        bag = player.get_state("bag", None)
-
-        if not bag:
-            return [ServerMessage(player, "You don't have a bag yet! Please visit Professor Oak.")]
-
-        available = bag.pokemon.get_available_pokemon()
-        if not available:
-            return [ServerMessage(player, "You don't have any healthy Pokémon to switch to!")]
-
-        options = []
-        self.__options_map.clear()
-
-        for index, ball in available:
-            label = f"{ball.get_name()} HP: {ball.get_health()}"
-            self.__options_map[label] = index
-            options.append(label)
-
-        options.append("Exit")  # give user an option to exit
-        player.set_current_menu(self)
-
-        return [
-            ServerMessage(player, "Choose a Pokémon to set as your active Pokémon:"),
-            OptionsMessage(self, player, options)
-        ]
-
-    def select_option(self, player, selected_option: str) -> list[Message]:
-        bag = player.get_state("bag", None) 
-
-        if selected_option == "Exit":
-            player.set_current_menu(None)
-            return [
-                ServerMessage(player, "You chose not to switch active Pokémon."),
-                OptionsMessage(self, player, [], destroy=True)
-            ]
-
-        index = self.__options_map.get(selected_option)
-
-        if index is not None:
-            old_active_pokemon = player.get_state("active_pokemon", None)
-
-            # Swap the Pokémon
-            new_active_pokemon = bag.pokemon.switch_pokemon(old_active_pokemon, index)
-                
-            # Set the new bag state
-            player.set_state("bag", bag)
-
-            if new_active_pokemon:
-                player.set_state("active_pokemon", new_active_pokemon)
-                player.set_current_menu(None)
-                return [
-                    ServerMessage(player, f"{new_active_pokemon.name} is now your active Pokémon!"),
-                    OptionsMessage(self, player, [], destroy=True)
-                ]
-                
-        return []
-
-    def clear_option(self) -> None:
-        self.__current_option = None
 
 
 class PotionPressurePlate(PressurePlate):
+    """Gives the player a random healing or revive potion when stepped on."""
     def __init__(self, position: Coord, is_revive: bool = False):
         self.__pos = position
         self.is_revive = is_revive
@@ -226,6 +161,7 @@ class PotionPressurePlate(PressurePlate):
 
 
 class PokeballPressurePlate(PressurePlate):
+    """Grants the player a random type of Pokéball when stepped on."""
     def __init__(self, position: Coord):
         # Randomly assign a Pokeball type to this plate
         pokeball_classes = [RegularPokeball, GreatBall, UltraBall, MasterBall]
@@ -261,6 +197,7 @@ class PokeballPressurePlate(PressurePlate):
     
     
 class ResetPlate(PressurePlate):
+    """Resets all player progress and state variables."""
     def __init__(self):
         super().__init__(image_name="red_down_arrow", stepping_text="Resetting your progress...")
 
@@ -276,5 +213,6 @@ class ResetPlate(PressurePlate):
     
     
 class PokeCounter(Counter):
+    """A specialized counter object for interaction with Nurse Joy to heal pokemon."""
     def __init__(self, npc: "NPC", image_name="f") -> None:
         super().__init__(image_name, npc)

@@ -1,5 +1,5 @@
 from enum import Enum
-
+"""A dictionary containing all information of individual Pokemons"""
 class PokemonType(Enum):
     FIRE = "Fire"
     WATER = "Water"

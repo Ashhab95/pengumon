@@ -18,6 +18,10 @@ class GameConstants:
 class TypeAdvantageCalculator:
     @staticmethod
     def calculate_multiplier(attacker_type, defender_type, evolution_level: int = 1):
+        """
+        Returns the type effectiveness multiplier based on attacker and defender types.
+        Multiplier increases with evolution level if the attacker has a type advantage.
+        """
         if evolution_level == 1:  
             advantage = 1.4
         elif evolution_level == 2: 
@@ -99,6 +103,7 @@ class FinalEvolutionState(EvolutionState):
 
 class Pokemon:
     def __init__(self, name: str):
+        """Initialize a Pokémon with its data from the Pokedex."""
         data = pokedex.get(name)
         if not data:
             raise ValueError(f"{name} not found in the Pokedex.")
@@ -121,11 +126,13 @@ class Pokemon:
 
 
     def __getstate__(self):
+        """Prepare the Pokémon's state for pickling by removing observers."""
         state = self.__dict__.copy()
         state.pop('_observers', None)  # Remove unpickleable observers
         return state
 
     def __setstate__(self, state):
+        """Restore the Pokémon's state after unpickling and reset observers."""
         self.__dict__.update(state)
         self._observers = []  # Restore empty observer list
 
@@ -139,15 +146,17 @@ class Pokemon:
             observer.on_health_changed(self, old_hp, new_hp)
 
     def is_fainted(self):
+        """Check if the Pokémon has fainted (0 or less HP)."""
         return self.current_health <= 0
 
     def take_damage(self, damage):
+        """Apply damage to the Pokémon and notify observers."""
         old_hp = self.current_health
         self.current_health = max(0, self.current_health - damage)
         self.notify_observers(old_hp, self.current_health)
 
     def attack(self, attack_index, target):
-        # Template method pattern
+        """Attack another Pokémon using a selected move and calculate results."""
         if self.is_fainted():
             return {"success": False, "message": f"{self.name} is fainted and cannot attack!"}
 
@@ -177,6 +186,7 @@ class Pokemon:
         return result
 
     def level_up_check(self):
+        """Check if the Pokémon should level up and evolve."""
         if isinstance(self.evolution_state, FinalEvolutionState):
             # Final form — no more level-ups
             return None
@@ -201,7 +211,7 @@ class Pokemon:
         return None
 
     def evolve(self, evolution_name: str) -> 'Pokemon':
-        """Evolve this Pokemon to the next form"""
+        """Evolve the Pokémon into a new form and update its state."""
         evolved_pokemon = Pokemon(evolution_name)
 
         # Update evolution state based on current state
@@ -213,6 +223,7 @@ class Pokemon:
         return evolved_pokemon
     
     def to_list(self) -> list:
+        """ For testing purposes"""
         print(self.p_type.name)
         print(type(self.p_type.name))
         return [
@@ -228,6 +239,7 @@ class Pokemon:
 
     @staticmethod
     def from_list(data: list) -> 'Pokemon':
+        """Deserialize a Pokémon from a saved list."""
         name, max_health, current_health, p_type, level, xp, known_attacks, evo_class = data
         poke = Pokemon(name)
         poke.max_health = max_health
@@ -256,6 +268,7 @@ class Pokemon:
 class PokemonFactory:
     @staticmethod
     def create_pokemon(name: str) -> Pokemon:
+        """Create a Pokémon by name from the Pokedex."""
         return Pokemon(name)
     
     @staticmethod
@@ -269,6 +282,7 @@ class PokemonFactory:
     
     @staticmethod 
     def create_random_wild_pokemon(level):
+        """Generate a wild Pokémon with a random type and level range."""
         import random
         
         # Choose a random Pokemon type

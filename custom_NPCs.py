@@ -14,6 +14,7 @@ from .pokeball import *
 from .pokemon import PokemonFactory
 
 class ProfessorOak(NPC, SelectionInterface):
+    """Custom Professor Oak NPC to provide the starter Pokemons"""
     def __init__(self, encounter_text: str = "Hello Pokémon trainer! I am Professor Oak! Choose your starter Pokémon!",
                  staring_distance: int = 3, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
         super().__init__(
@@ -86,6 +87,7 @@ class ProfessorOak(NPC, SelectionInterface):
     
     
 class Nurse(NPC):
+    """Custom Nurse NPC to replenish health of Pokemons"""
     def __init__(self, encounter_text: str, staring_distance: int = 0, facing_direction: Literal['up', 'down', 'left', 'right'] = 'down') -> None:
         super().__init__(
             name="Nurse Joy",

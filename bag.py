@@ -4,6 +4,7 @@ from .pokeball import Pokeball, RegularPokeball, GreatBall, UltraBall, MasterBal
 from .pokemon import Pokemon
 
 class ItemCompartment:
+    """Base class for organizing and managing item quantities in a compartment."""
     def __init__(self, name: str):
         self.name = name
 
@@ -53,6 +54,7 @@ class ItemCompartment:
 
 
 class PotionCompartment(ItemCompartment):
+    """Stores healing and revive potions and tracks their quantities."""
     def __init__(self):
         super().__init__("Potions")
         self._counts = {
@@ -110,6 +112,7 @@ class PotionCompartment(ItemCompartment):
 
 
 class PokeballCompartment(ItemCompartment):
+    """Holds and manages different types of empty Pokéballs."""
     def __init__(self):
         super().__init__("Empty Pokeballs")
         self._counts = {"pokeball": 0, "greatball": 0, "ultraball": 0, "masterball": 0}
@@ -143,6 +146,8 @@ class PokeballCompartment(ItemCompartment):
 
 
 class PokemonRoster:
+    class PokemonRoster:
+     """Handles the storage and switching of the player's captured Pokémon."""
     MAX_CAPACITY = 5 # 5 in the roster in pokeballs + user gets one active pokemon
 
     def __init__(self):
@@ -231,6 +236,7 @@ class PokemonRoster:
 
 
 class Bag:
+    """Main inventory class that stores potions, Pokéballs, and captured Pokémon."""
     def __init__(self):
         self.potions = PotionCompartment()
         self.pokeballs = PokeballCompartment()

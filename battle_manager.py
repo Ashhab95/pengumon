@@ -22,6 +22,7 @@ ENEMY_RESPONSE_TIME = 3
 PLAYER_CHANCE_TO_RUN = 0.7
 
 class TurnStage(Enum):
+    """Represents the various stages of a Pokémon battle turn lifecycle."""
     IDLE = auto()           # the stage the battle manager initializes in
     INTRO = auto()          # setup stage, where the battle is introduced 
     PLAYER_TURN = auto()    # present options to player (called once so option messages don't repeat)
@@ -35,6 +36,10 @@ class TurnStage(Enum):
 
 
 class PokemonBattleManager:
+    """
+    Manages the full turn-based battle logic between the player and a wild Pokémon.
+    Handles state transitions, player actions, enemy AI decisions, and battle messages.
+    """
     def __init__(self, player, wild_pokemon_name: str):
         self.__player = player
     
@@ -58,6 +63,7 @@ class PokemonBattleManager:
         self.__current_option = selected_option
 
     def clear_option(self) -> None:
+        """Clear the currently selected option."""
         self.__current_option = None
 
     def is_over(self) -> bool:
@@ -65,10 +71,15 @@ class PokemonBattleManager:
         return self.__turn_stage == TurnStage.CLEANUP
 
     def get_player_pokemon(self) -> Pokemon:
+        """Return the current active Pokémon of the player."""
         return self.__player_pokemon
 
     # Update is called every second
     def update(self) -> list[Message]:
+        """
+        Update the battle state based on current turn stage.
+        Called repeatedly to progress the battle flow.
+        """
         now = time.time()
         messages = []
 
@@ -157,6 +168,10 @@ class PokemonBattleManager:
         return [OptionsMessage(self.__player, self.__player, full_options)]  # present options to player
 
     def _handle_await_input(self) -> list[Message]:
+        """
+        Process the player’s selected option and handle all action logic 
+        (attacks, potions, Pokéballs, switching Pokémon, running).
+        """
         messages = []
         now = time.time()
         selected = self.__current_option
@@ -361,6 +376,7 @@ class PokemonBattleManager:
         return messages
 
     def _process_player_attack(self, index):
+        """Process an attack chosen by the player and apply damage and evolution logic."""
         messages = []
         player_name = self.__player.get_name()
 
@@ -411,6 +427,7 @@ class PokemonBattleManager:
         return messages
 
     def _handle_enemy_turn(self):
+        """Let the enemy Pokémon take its turn using AI to choose actions."""
         messages = []
         ai_level = self.__player.get_state("enemy_ai", "medium")  # stored as a string
         if ai_level == "easy":
@@ -465,6 +482,10 @@ class PokemonBattleManager:
         return messages
 
     def _handle_end(self) -> list[Message]:
+        """
+        Handle the battle’s conclusion, including switching Pokémon or reviving if available.
+        Finalizes and cleans up battle state.
+        """
         bag_data = self.__player.get_state("bag")
         bag = Bag.from_dict(bag_data)
         available = bag.pokemon.get_available_pokemon()

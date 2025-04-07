@@ -17,7 +17,9 @@ class EnemyAI(ABC):
 
 
 class EasyAI(EnemyAI):
+    """AI that favors weaker attacks and dodges occasionally."""
     def choose_action(self, enemy_pokemon, player_pokemon) -> str:
+        """20% chance to dodge, otherwise use weaker attacks more often."""
         if random.random() < 0.2:
             return "Dodge"
 
@@ -38,7 +40,9 @@ class EasyAI(EnemyAI):
 
 
 class MediumAI(EnemyAI):
+    """Balanced AI with moderate dodging and random attack choice."""
     def choose_action(self, enemy_pokemon, player_pokemon) -> str:
+        """30% chance to dodge, otherwise picks a random attack."""
         if random.random() < 0.3:
             return "Dodge"
 
@@ -48,7 +52,9 @@ class MediumAI(EnemyAI):
 
 
 class HardAI(EnemyAI):
+    """Advanced AI that prefers stronger attacks and smart dodging."""
     def choose_action(self, enemy_pokemon, player_pokemon) -> str:
+        """Dodges when health is low or randomly, otherwise uses strong attacks."""
         hp_ratio = enemy_pokemon.current_health / enemy_pokemon.max_health
         if hp_ratio < 0.3 and random.random() < 0.4:
             return "Dodge"

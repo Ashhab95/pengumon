@@ -39,14 +39,6 @@ class PokemonHouse(Map):
     def _add_trees(self, objects, start_pos, end_pos, step=1, tree_type="tree_lar", direction="horizontal"):
         """
         Helper method to add trees to the map.
-        
-        Args:
-            objects: List to append objects to
-            start_pos: (i, j) tuple, top-left corner
-            end_pos: (i, j) tuple, bottom-right corner
-            step: Gap between trees
-            tree_type: Image name of tree
-            direction: "horizontal", "vertical", or "area"
         """
         i_start, j_start = start_pos
         i_end, j_end = end_pos
@@ -71,7 +63,7 @@ class PokemonHouse(Map):
                         objects.append((tree, Coord(i, j)))
 
     def _add_tile_line(self, objects, tile_name: str, start: tuple[int, int], end: tuple[int, int]):
-
+        """Helper Method to add a layer of tile background on top of existing background"""
         y1, x1 = start
         y2, x2 = end
 
@@ -87,21 +79,16 @@ class PokemonHouse(Map):
                 objects.append((tile, Coord(y, x1)))
 
     def place(self, objects, tile_name: str, position: tuple[int, int]):
+        """Helper Method to add a layer of tile background on top of existing background
+            on one specific tile.
+        """
         y, x = position
         tile = MapObject.get_obj(tile_name)
         tile._MapObject__z_index = 0
         objects.append((tile, Coord(y, x)))
   
     def _add_bushes_with_plates(self, objects, start_pos, end_pos, evolution_stage=1, plate_probability=0.8):
-        """Add an area of bushes with random PokemonBattlePressurePlates beneath.
-
-        Args:
-            objects: List to append objects to.
-            start_pos: Top left corner coordinate (i, j) of the area.
-            end_pos: Bottom right corner coordinate (i, j) of the area.
-            evolution_stage: 1 (BASE), 2 (SECOND), or 3 (FINAL).
-            plate_probability: Probability of placing a pressure plate under a bush.
-        """
+        """Add an area of bushes with random PokemonBattlePressurePlates beneath."""
         i_start, j_start = start_pos
         i_end, j_end = end_pos
 
@@ -127,6 +114,7 @@ class PokemonHouse(Map):
                         objects.append((bush, Coord(i, j)))
     
     def add_pressure_plate(self, objects, plate_class, position: tuple[int, int], **kwargs):
+        """Helper Method to add our custom pressure plates on the map"""
         y, x = position
         coord = Coord(y, x)
         plate = plate_class(position=coord, **kwargs)
@@ -136,9 +124,14 @@ class PokemonHouse(Map):
 
     
     def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
+        """
+        Registers keybinds for player interaction in the Pokémon Center.
+        (view stats, switch Pokémon, show bag, hints)
+        """
         keybinds = super()._get_keybinds()
 
         def view_active_pokemon(player: HumanPlayer) -> list[Message]:
+            """Display detailed stats and attacks of the active Pokémon."""
             data = player.get_state("active_pokemon", None)
             if not data:
                 return [ServerMessage(player, "No active Pokémon found.")]
@@ -179,6 +172,7 @@ class PokemonHouse(Map):
             ]
 
         def give_hint(player: HumanPlayer) -> list[Message]:
+            """Show a random helpful hint to the player."""
             hints_pool = [
                 ["Visit Professor Oak", "to get your first Pokémon and bag!"],
                 ["You can dodge during battles", "to avoid taking damage!"],
@@ -210,6 +204,7 @@ class PokemonHouse(Map):
             ]
 
         def switch_active_pokemon(player: HumanPlayer) -> list[Message]:
+            """Let the player select a healthy Pokémon to set as the active one."""
             bag_data = player.get_state("bag", None)
             if not bag_data:
                 return [ServerMessage(player, "You don't have a bag yet! Please visit Professor Oak.")]

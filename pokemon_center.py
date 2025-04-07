@@ -29,9 +29,14 @@ class PokemonCenter(Map):
             background_music='killswitch'
         )
     def _get_keybinds(self) -> dict[str, Callable[["HumanPlayer"], list[Message]]]:
+        """
+        Registers keybinds for player interaction in the Pokémon Center.
+        (view stats, switch Pokémon, show bag, hints)
+        """
         keybinds = super()._get_keybinds()
 
         def view_active_pokemon(player: HumanPlayer) -> list[Message]:
+            """Display detailed stats and attacks of the active Pokémon."""
             data = player.get_state("active_pokemon", None)
             if not data:
                 return [ServerMessage(player, "No active Pokémon found.")]
@@ -72,6 +77,7 @@ class PokemonCenter(Map):
             ]
 
         def give_hint(player: HumanPlayer) -> list[Message]:
+            """Show a random helpful hint to the player."""
             hints_pool = [
                 ["Visit Professor Oak", "to get your first Pokémon and bag!"],
                 ["You can dodge during battles", "to avoid taking damage!"],
@@ -103,6 +109,7 @@ class PokemonCenter(Map):
             ]
 
         def switch_active_pokemon(player: HumanPlayer) -> list[Message]:
+            """Let the player select a healthy Pokémon to set as the active one."""
             bag_data = player.get_state("bag", None)
             if not bag_data:
                 return [ServerMessage(player, "You don't have a bag yet! Please visit Professor Oak.")]
