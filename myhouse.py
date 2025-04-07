@@ -359,7 +359,7 @@ class PokemonHouse(Map):
             staring_distance=3,
         )
         objects.append((prof, Coord(24, 24)))
-        self.add_pressure_plate(objects, PotionPressurePlate, (24, 25), is_revive=True)
+  
 
         
 
