@@ -181,29 +181,40 @@ class SwitchActivePokemonPlate(PressurePlate, SelectionInterface):
 
 
 class PotionPressurePlate(PressurePlate):
-    def __init__(self, position: Coord):
-        # Randomly assign a potion to this plate on creation
+    def __init__(self, position: Coord, is_revive: bool = False):
+        self.__pos = position
+        self.is_revive = is_revive
+
+        # Define potion class and image mapping
         potion_classes = [SmallPotion, MediumPotion, LargePotion]
         self.potion_class = random.choice(potion_classes)
-        self.__pos = position
+        base_potion = self.potion_class()
 
-        # Determine image name based on potion type
-        potion_to_image = {
-            SmallPotion: "heal_smal",
-            MediumPotion: "heal_mediu",
-            LargePotion: "heal_ful"
-        }
+        if is_revive:
+            self.potion = RevivePotion(base_potion)
+            potion_to_image = {
+                SmallPotion: "revive_small",
+                MediumPotion: "revive_medium",
+                LargePotion: "revive_large"
+            }
+            stepping_text = "You stepped on a revive pad!"
+        else:
+            self.potion = base_potion
+            potion_to_image = {
+                SmallPotion: "heal_smal",
+                MediumPotion: "heal_mediu",
+                LargePotion: "heal_ful"
+            }
+            stepping_text = "You stepped on a potion pad!"
+
         image_name = potion_to_image.get(self.potion_class, "blue_circle")
-
-        super().__init__(image_name=image_name, stepping_text="You stepped on a potion pad!")
+        super().__init__(image_name=image_name, stepping_text=stepping_text)
 
     def player_entered(self, player) -> list:
-        potion = self.potion_class()
-
         # Load and update bag
         bag_data = player.get_state("bag")
         bag = Bag.from_dict(bag_data)
-        bag.potions.add(potion)
+        bag.potions.add(self.potion)
         player.set_state("bag", bag.to_dict())
 
         # Remove this pressure plate from the map
@@ -211,7 +222,8 @@ class PotionPressurePlate(PressurePlate):
             game_map: Map = player.get_current_room()
             game_map.remove_from_grid(map_obj=self, start_pos=self.__pos)
 
-        return [ServerMessage(player, f"You found a {potion.get_name()}! It has been added to your bag.")]
+        return [ServerMessage(player, f"You found a {self.potion.get_name()}! It has been added to your bag.")]
+
 
 class PokeballPressurePlate(PressurePlate):
     def __init__(self, position: Coord):

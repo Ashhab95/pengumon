@@ -126,11 +126,12 @@ class PokemonHouse(Map):
                         bush._MapObject__passable = True
                         objects.append((bush, Coord(i, j)))
     
-    def add_pressure_plate(self, objects, plate_class, position: tuple[int, int]):
+    def add_pressure_plate(self, objects, plate_class, position: tuple[int, int], **kwargs):
         y, x = position
         coord = Coord(y, x)
-        plate = plate_class(position=coord)
+        plate = plate_class(position=coord, **kwargs)
         objects.append((plate, coord))
+
 
 
     
@@ -331,7 +332,7 @@ class PokemonHouse(Map):
         # Add tree rows above entry path
         self._add_trees(objects, (21, 4), (21, 27), step=2)
         self._add_trees(objects, (22, 4), (22, 23), step=2)
-        # Professor Oak stands at (24, 24)
+        
         reset_plate = ResetPlate()
         objects.append((reset_plate, Coord(24, 27)))
         
@@ -358,6 +359,9 @@ class PokemonHouse(Map):
             staring_distance=3,
         )
         objects.append((prof, Coord(24, 24)))
+        self.add_pressure_plate(objects, PotionPressurePlate, (24, 25), is_revive=True)
+
+        
 
         self._add_trees(objects, (15, 2), (15, 16),step=1, tree_type="tree_f")
         self._add_bushes_with_plates(objects, (18, 4), (20, 7), evolution_stage=1, plate_probability=0.5)
@@ -385,11 +389,13 @@ class PokemonHouse(Map):
         objects.append((building, Coord(11, 23)))
         sign = Sign(text="Welcome to the Pokemon Center")
         objects.append((sign, Coord(15, 23)))
+        '''
         nurse = Nurse(
             encounter_text="Hello, I am Nurse Joy, Allow me to heal your active Pokémon!",
             staring_distance=2,
         )
-        objects.append((nurse, Coord(16, 22)))
+        '''
+        #objects.append((nurse, Coord(16, 22)))
         #path from pokemon center
         self.place(objects, 'top_left', (16, 24))
         self.place(objects, 'poke_sand_up', (16, 25))
@@ -460,6 +466,7 @@ class PokemonHouse(Map):
         self.add_pressure_plate(objects,PotionPressurePlate,(16,27))
         self.add_pressure_plate(objects,PotionPressurePlate,(4,15))
         self.add_pressure_plate(objects,PotionPressurePlate,(20,16))
+        self.add_pressure_plate(objects,PotionPressurePlate,(20,17))
 
 
         

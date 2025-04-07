@@ -469,13 +469,30 @@ class PokemonBattleManager:
         bag = Bag.from_dict(bag_data)
         available = bag.pokemon.get_available_pokemon()
 
+        if self.__player_pokemon.is_fainted():
+            # Try to revive with a revive potion
+            revive_keys = ["small_revive", "medium_revive", "large_revive"]
+            for key in revive_keys:
+                if bag.potions._has_item(key):
+                    revive_potion = bag.potions.remove(key)
+                    success = revive_potion.use(self.__player_pokemon)
+                    if success:
+                        self.__player.set_state("active_pokemon", self.__player_pokemon.to_list())
+                        self.__player.set_state("bag", bag.to_dict())
+                        self.__turn_stage = TurnStage.ENEMY_WAIT
+                        return [
+                            ServerMessage(self.__player, f"{self.__player_pokemon.name} was revived with a {revive_potion.get_name()}!"),
+                            self._make_battle_message()
+                        ]
+                      
+
         if self.__player_pokemon.is_fainted() and available:
             index, new_ball = random.choice(available)
             new_active = bag.pokemon.switch_pokemon(self.__player_pokemon, index)
 
             if new_active:
-                self.__player.set_state("active_pokemon", new_active.to_list())  
-                self.__player.set_state("bag", bag.to_dict())                    
+                self.__player.set_state("active_pokemon", new_active.to_list())
+                self.__player.set_state("bag", bag.to_dict())
                 self.__player_pokemon = new_active
                 if len(self.__player_pokemon._observers) == 0:
                     self.__player_pokemon.add_observer(BattleMessageNotifier(self.__player, self.__battle_messages))
@@ -493,3 +510,4 @@ class PokemonBattleManager:
         ]
         self.__turn_stage = TurnStage.CLEANUP
         return messages
+

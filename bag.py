@@ -65,26 +65,45 @@ class PotionCompartment(ItemCompartment):
         }
 
     def get_item_key(self, item: Item) -> str:
-        if isinstance(item, SmallPotion) and item.is_revive(): return "small_revive"
-        elif isinstance(item, MediumPotion) and item.is_revive(): return "medium_revive"
-        elif isinstance(item, LargePotion) and item.is_revive(): return "large_revive"
-        elif isinstance(item, SmallPotion): return "small"
+        # Handle RevivePotion first
+        if isinstance(item, RevivePotion):
+            base = item.health_potion
+            if isinstance(base, SmallPotion): return "small_revive"
+            elif isinstance(base, MediumPotion): return "medium_revive"
+            elif isinstance(base, LargePotion): return "large_revive"
+        
+        # Regular health potions
+        if isinstance(item, SmallPotion): return "small"
         elif isinstance(item, MediumPotion): return "medium"
         elif isinstance(item, LargePotion): return "large"
+        
         raise ValueError("Unsupported potion type")
+
 
     def _increment(self, key: str): self._counts[key] += 1
     def _decrement(self, key: str): self._counts[key] -= 1
     def _has_item(self, key: str) -> bool: return self._counts.get(key, 0) > 0
 
     def _make_item(self, key: str) -> Optional[Potion]:
-        if key == "small": return SmallPotion()
-        elif key == "medium": return MediumPotion()
-        elif key == "large": return LargePotion()
-        elif key == "small_revive": return RevivePotion(SmallPotion())
-        elif key == "medium_revive": return RevivePotion(MediumPotion())
-        elif key == "large_revive": return RevivePotion(LargePotion())
+        potion_map = {
+            "small": SmallPotion,
+            "medium": MediumPotion,
+            "large": LargePotion,
+        }
+
+        revive_map = {
+            "small_revive": SmallPotion,
+            "medium_revive": MediumPotion,
+            "large_revive": LargePotion,
+        }
+
+        if key in potion_map:
+            return potion_map[key]()
+        elif key in revive_map:
+            return RevivePotion(revive_map[key]())
+
         return None
+
 
     def _get_counts(self) -> Dict[str, int]:
         return self._counts
