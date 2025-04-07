@@ -442,7 +442,7 @@ class PokemonHouse(Map):
 
         self._add_bushes_with_plates(objects, (7, 2), (12, 5), evolution_stage=2, plate_probability=0.6)
         self._add_bushes_with_plates(objects, (3, 8), (4,14), evolution_stage=1, plate_probability=0.6)
-        self._add_bushes_with_plates(objects, (12, 8), (14,12), evolution_stage=2, plate_probability=0.6)
+        self._add_bushes_with_plates(objects, (12, 9), (14,12), evolution_stage=2, plate_probability=0.6)
         self._add_bushes_with_plates(objects, (3, 2), (5, 4), evolution_stage=3, plate_probability=0.5)
         objects.append((MapObject.get_obj('rock_903'), Coord(3,5)))
         objects.append((MapObject.get_obj('rock_903'), Coord(4,5)))
@@ -459,6 +459,8 @@ class PokemonHouse(Map):
         self.add_pressure_plate(objects,PokeballPressurePlate,(3,20))
         self.add_pressure_plate(objects,PokeballPressurePlate,(18,9))
         self.add_pressure_plate(objects,PokeballPressurePlate,(14,15))
+        self.add_pressure_plate(objects,PokeballPressurePlate,(12,8))
+
 
         self.add_pressure_plate(objects,PotionPressurePlate,(14,7))
         self.add_pressure_plate(objects,PotionPressurePlate,(3,11))
@@ -467,7 +469,16 @@ class PokemonHouse(Map):
         self.add_pressure_plate(objects,PotionPressurePlate,(4,15))
         self.add_pressure_plate(objects,PotionPressurePlate,(20,16))
         self.add_pressure_plate(objects,PotionPressurePlate,(20,17))
+        self.add_pressure_plate(objects,PotionPressurePlate,(13,8))
+        self.add_pressure_plate(objects,PotionPressurePlate,(9,15))
 
+        
+        self.add_pressure_plate(objects, PotionPressurePlate, (14, 2), is_revive=True)
+        self.add_pressure_plate(objects, PotionPressurePlate, (6, 2), is_revive=True)
+        self.add_pressure_plate(objects, PotionPressurePlate, (13, 15), is_revive=True)
+        self.add_pressure_plate(objects, PotionPressurePlate, (14, 8), is_revive=True)
+        self.add_pressure_plate(objects, PotionPressurePlate, (18, 10), is_revive=True)
+        self.add_pressure_plate(objects, PotionPressurePlate, (6, 15), is_revive=True)
 
         
         
