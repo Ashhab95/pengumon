@@ -304,8 +304,6 @@ class PokemonHouse(Map):
         door = Door('tube', linked_room="Trottier Town", is_main_entrance=True)
         objects.append((door, Coord(26, 27)))
         
-        #switch_plate = SwitchActivePokemonPlate()
-        #objects.append((switch_plate, Coord(19, 25)))
         
         #pokemon_battle_plate = PokemonBattlePressurePlate("Infernape")
         #objects.append((pokemon_battle_plate, Coord(19, 26)))
