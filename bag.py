@@ -69,7 +69,7 @@ class PotionCompartment(ItemCompartment):
     def get_item_key(self, item: Item) -> str:
         # Handle RevivePotion first
         if isinstance(item, RevivePotion):
-            base = item.health_potion
+            base = item.potion
             if isinstance(base, SmallPotion): return "small_revive"
             elif isinstance(base, MediumPotion): return "medium_revive"
             elif isinstance(base, LargePotion): return "large_revive"

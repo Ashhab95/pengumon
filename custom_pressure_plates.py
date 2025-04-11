@@ -120,13 +120,13 @@ class PotionPressurePlate(PressurePlate):
         self.__pos = position
         self.is_revive = is_revive
 
-        # Define potion class and image mapping
+        # Randomly choose one of the base potion classes
         potion_classes = [SmallPotion, MediumPotion, LargePotion]
         self.potion_class = random.choice(potion_classes)
-        base_potion = self.potion_class()
+        base_potion: Item = self.potion_class()
 
         if is_revive:
-            self.potion = RevivePotion(base_potion)
+            self.potion: Item = RevivePotion(base_potion)
             potion_to_image = {
                 SmallPotion: "revive_small",
                 MediumPotion: "revive_medium",
@@ -134,7 +134,7 @@ class PotionPressurePlate(PressurePlate):
             }
             stepping_text = "You stepped on a revive pad!"
         else:
-            self.potion = base_potion
+            self.potion: Item = base_potion
             potion_to_image = {
                 SmallPotion: "heal_smal",
                 MediumPotion: "heal_mediu",

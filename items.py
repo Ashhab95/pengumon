@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any
 
 # Constants
 class PotionConstants:
@@ -25,6 +25,14 @@ class Item(ABC):
         """Apply the item effect to a target."""
         pass
 
+    def is_revive(self) -> bool:
+        """Check if the item is a revive variant."""
+        return False
+
+    def to_list(self) -> list:
+        """Serialize item for saving."""
+        pass
+
 # ---- Potion Base Class ----
 class Potion(Item):
     """Basic healing potion."""
@@ -43,21 +51,11 @@ class Potion(Item):
 
     def use(self, pokemon) -> bool:
         """Heal the Pokémon if it's not fainted or at full health."""
-        if pokemon.is_fainted():
+        if pokemon.is_fainted() or pokemon.current_health == pokemon.max_health:
             return False
 
-        if pokemon.current_health == pokemon.max_health:
-            return False
-
-        old_health = pokemon.current_health
         pokemon.current_health = min(pokemon.max_health, pokemon.current_health + self.heal_value)
-        amount_healed = pokemon.current_health - old_health
-
         return True
-
-    def is_revive(self) -> bool:
-        """Check if this is a revive potion."""
-        return False
 
     def to_list(self) -> list:
         """Serialize potion for saving."""
@@ -85,57 +83,67 @@ class LargePotion(Potion):
         super().__init__("Large Potion", PotionConstants.LARGE_HEAL)
 
 # ---- Abstract Decorator ----
-class PotionDecorator(Potion, ABC):
-    def __init__(self, health_potion: Potion):
+class PotionDecorator(Item):
+    """Abstract base class for potion decorators."""
+    def __init__(self, potion: Item):
         """Wrap a potion to extend its functionality."""
-        if isinstance(health_potion, RevivePotion):
+        if isinstance(potion, RevivePotion):
             raise ValueError("Cannot decorate a revive potion")
-        self.health_potion = health_potion
-        super().__init__(health_potion.get_name(), health_potion.get_value())
+        self.potion = potion
 
     def get_name(self) -> str:
         """Return the name of the decorated potion."""
-        return self.health_potion.get_name()
+        return self.potion.get_name()
 
     def get_value(self) -> int:
         """Return the healing value of the decorated potion."""
-        return self.health_potion.get_value()
+        return self.potion.get_value()
 
     def use(self, pokemon) -> bool:
         """Apply the decorated potion effect."""
-        return self.health_potion.use(pokemon)
+        return self.potion.use(pokemon)
+
+    def to_list(self) -> list:
+        """Serialize decorated potion for saving."""
+        return self.potion.to_list()
 
 # ---- Revive Decorator ----
 class RevivePotion(PotionDecorator):
-    def __init__(self, health_potion: Potion):
-        super().__init__(health_potion)
+    """Decorator that revives a fainted Pokémon before applying healing."""
+    def __init__(self, potion: Item):
+        super().__init__(potion)
 
     def get_name(self) -> str:
-        return f"Revive {self.health_potion.get_name()}"
+        """Return the name indicating revive status."""
+        return f"Revive {self.potion.get_name()}"
 
     def is_revive(self) -> bool:
+        """Indicate this is a revive potion."""
         return True
 
-    def use(self, pokemon) -> Dict[str, Any]:
+    def use(self, pokemon) -> bool:
         """Revive the Pokémon if fainted, then heal."""
         if pokemon.is_fainted():
             pokemon.current_health = 1
-        return self.health_potion.use(pokemon)
+        return self.potion.use(pokemon)
 
     def to_list(self) -> list:
-        return ["revive_potion", self.health_potion.get_name()]
+        """Serialize revive potion for saving."""
+        return ["revive_potion", self.potion.get_name()]
 
     @staticmethod
     def from_list(data: list) -> 'RevivePotion':
+        """Deserialize revive potion from saved data."""
         base_potion = PotionFlyweightFactory.get_potion(data[1])
         return RevivePotion(base_potion)
 
 # ---- Flyweight Factory ----
 class PotionFlyweightFactory:
+    """Flyweight factory to reuse potion instances."""
     _flyweights = {}
 
     @classmethod
-    def get_potion(cls, potion_type: str) -> Potion:
+    def get_potion(cls, potion_type: str) -> Item:
         """Return a shared potion instance based on type."""
         key = potion_type.lower()
 
@@ -147,44 +155,43 @@ class PotionFlyweightFactory:
             elif key == "large potion":
                 cls._flyweights[key] = LargePotion()
             elif key == "revive small potion":
-                health_potion = cls.get_potion("small potion")
-                cls._flyweights[key] = RevivePotion(health_potion)
+                base = cls.get_potion("small potion")
+                cls._flyweights[key] = RevivePotion(base)
             elif key == "revive medium potion":
-                health_potion = cls.get_potion("medium potion")
-                cls._flyweights[key] = RevivePotion(health_potion)
+                base = cls.get_potion("medium potion")
+                cls._flyweights[key] = RevivePotion(base)
             elif key == "revive large potion":
-                health_potion = cls.get_potion("large potion")
-                cls._flyweights[key] = RevivePotion(health_potion)
+                base = cls.get_potion("large potion")
+                cls._flyweights[key] = RevivePotion(base)
             else:
                 raise ValueError(f"Unknown potion type: {potion_type}")
 
         return cls._flyweights[key]
 
-    # Accessors
     @classmethod
-    def get_small_potion(cls) -> Potion:
+    def get_small_potion(cls) -> Item:
         return cls.get_potion("small potion")
 
     @classmethod
-    def get_medium_potion(cls) -> Potion:
+    def get_medium_potion(cls) -> Item:
         return cls.get_potion("medium potion")
 
     @classmethod
-    def get_large_potion(cls) -> Potion:
+    def get_large_potion(cls) -> Item:
         return cls.get_potion("large potion")
 
     @classmethod
-    def get_revive_small_potion(cls) -> Potion:
+    def get_revive_small_potion(cls) -> Item:
         return cls.get_potion("revive small potion")
 
     @classmethod
-    def get_revive_medium_potion(cls) -> Potion:
+    def get_revive_medium_potion(cls) -> Item:
         return cls.get_potion("revive medium potion")
 
     @classmethod
-    def get_revive_large_potion(cls) -> Potion:
+    def get_revive_large_potion(cls) -> Item:
         return cls.get_potion("revive large potion")
 
     @classmethod
-    def get_max_revive(cls) -> Potion:
+    def get_max_revive(cls) -> Item:
         return cls.get_revive_large_potion()
