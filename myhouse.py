@@ -206,7 +206,7 @@ class PokemonHouse(Map):
         objects.append((MapObject.get_obj('flower_r'), Coord(4, 21)))
         objects.append((MapObject.get_obj('flower_r'), Coord(8, 21)))
         objects.append((MapObject.get_obj('flower_r'), Coord(9, 21)))
-        self.place(objects, 'fence', (10, 22))
+        # self.place(objects, 'fence', (10, 22))
        
         building = PokemonCenter(linked_room_str="Pokemon Center")
         objects.append((building, Coord(11, 23)))
