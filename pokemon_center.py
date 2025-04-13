@@ -41,14 +41,14 @@ class PokemonCenter(Map):
         # add a door
         door = Door('mat', linked_room="Pokemon House")
         objects.append((door, Coord(14, 7)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 0)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 1)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 2)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 3)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 11)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 12)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 13)))
-        objects.append((MapObject.get_obj('wall'), Coord(0, 14)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 0)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 1)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 2)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 3)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 11)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 12)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 13)))
+        # objects.append((MapObject.get_obj('wall'), Coord(0, 14)))
         #objects.append((MapObject.get_obj('l'), Coord(0, 4)))
 
 
