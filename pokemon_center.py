@@ -16,7 +16,7 @@ from .pokeball import *
 from .pokedex import *
 from enum import Enum, auto
 from .custom_pressure_plates import PokeCounter
-from .keybinds import get_keybinds
+from .custom_keybinds import get_keybinds
 
 class PokemonCenter(Map):
     def __init__(self) -> None:

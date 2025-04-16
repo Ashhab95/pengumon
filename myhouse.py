@@ -23,7 +23,7 @@ from .custom_pressure_plates import *
 from .custom_NPCs import ProfessorOak, Nurse
 from .custom_buildings import PokemonCenter
 from .pokedex import *
-from .keybinds import get_keybinds
+from .custom_keybinds import get_keybinds
 
 class PokemonHouse(Map):
     MAIN_ENTRANCE = True
