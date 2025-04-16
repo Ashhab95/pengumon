@@ -11,3 +11,6 @@ __pycache__/
 # Ignore logs and temporary files
 *.log
 /tmp/
+
+# Ignore pickle files
+*.pkl
