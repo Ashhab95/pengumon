@@ -22,10 +22,6 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
     def __init__(self, wild_pokemon_name: str):
         super().__init__(image_name="bushh", stepping_text=f"You encountered a wild {wild_pokemon_name}!")
         self.__wild_pokemon_name = wild_pokemon_name
-        self.__current_option = None
-        self.__turn_stage = TurnStage.IDLE
-        self.__last_action_time = time.time()
-
         self.__player = None
         self.__battle = None
 
@@ -41,21 +37,22 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
     def player_entered(self, player) -> list[Message]:
         # This is a safeguard - only allow battle if player has chosen starter pokemon
         poke_data = player.get_state("active_pokemon", None)
+        
+        # Check if the player has a active Pokémon
         if poke_data is None:
             return [ServerMessage(player, "You don't have a Pokémon! Visit Professor Oak to choose your starter.")]
 
+        # This is a safeguard - only allow battle if active pokemon is not fainted
         active_pokemon = Pokemon.from_list(poke_data)
 
+        # Check if the active pokemon is fainted
         if active_pokemon.is_fainted():
             return [ServerMessage(player, "Your active Pokémon is fainted! Fainted Pokémon cannot battle.")]
 
         self.__player = player
         self.__battle = PokemonBattleManager(player, self.__wild_pokemon_name)
-        self.__battle._PokemonBattleManager__player_pokemon = active_pokemon  # override with deserialized object
-        self.__turn_stage = TurnStage.INTRO
-        self.__last_action_time = time.time()
-
         player.set_current_menu(self)
+        
         return []
 
     def update(self) -> list[Message]:
@@ -65,9 +62,11 @@ class PokemonBattlePressurePlate(PressurePlate, SelectionInterface):
         messages = self.__battle.update()
 
         if self.__battle.is_over():
-            updated_pokemon = self.__battle.get_player_pokemon()
+            updated_pokemon = self.__battle.get_player_pokemon() # active pokemon at end of battle
+            updated_bag = self.__battle.get_bag() # bag at end of battle
             self.__player.set_state("active_pokemon", updated_pokemon.to_list())
-            self.__player.set_current_menu(None)
+            self.__player.set_state("bag", updated_bag.to_dict())
+            self.__player.set_current_menu(None) # clear menu
             self.__battle = None
 
         return messages
