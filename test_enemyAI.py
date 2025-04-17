@@ -1,13 +1,21 @@
 import pytest
 import random
 from .enemyAI import EasyAI, MediumAI, HardAI
-from .pokemon import *
 
+# Define a dummy Pokemon for unit testing
 @pytest.fixture
 def dummy_pokemon():
     """Returns dummy pokemon."""
-    Charmeleon = PokemonFactory.create_pokemon("Charmeleon") # has 3 attacks
-    return Charmeleon
+    class DummyPokemon:
+        def __init__(self):
+            self.known_attacks = [
+                {"name": "Ember", "damage": 10},
+                {"name": "Flame Wheel", "damage": 30},
+                {"name": "Fire Blast", "damage": 60}
+            ]
+            self.current_health = 50
+            self.max_health = 100
+    return DummyPokemon()
 
 def test_easy_ai_dodge_chance(monkeypatch, dummy_pokemon):
     """Ensure EasyAI dodges ~ 20% of the time."""

@@ -280,24 +280,3 @@ class PokemonFactory:
             PokemonFactory.create_pokemon("Bulbasaur")
         ]
     
-    @staticmethod 
-    def create_random_wild_pokemon(level):
-        """Generate a wild Pokémon with a random type and level range."""
-        import random
-        
-        # Choose a random Pokemon type
-        starter_options = [ "Charmander", "Squirtle", "Bulbasaur", "Chimchar", "Piplup", "Turtwig"]
-
-        pokemon = PokemonFactory.create_pokemon(random.choice(starter_options))
-        
-        # Get target level
-        target_level = random.randint(*level)
-        
-        # Properly level up the Pokemon to reach the target level
-        while pokemon.level < level:
-            pokemon.xp = GameConstants.BASE_XP_THRESHOLDD
-            evolved = pokemon.level_up_check()
-            if evolved:
-                pokemon = evolved
-        
-        return pokemon
