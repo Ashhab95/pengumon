@@ -19,7 +19,7 @@ def final():
     return PokemonFactory.create_pokemon("Charizard")  # final evolution
 
 def test_pokemon_initialization(starter):
-    """Ensure Pokémon is initialized correctly with expected stats."""
+    """Ensure Pokemon is initialized correctly with expected stats."""
     assert starter.name == "Charmander"
     assert starter.max_health == 50
     assert starter.current_health == 50
@@ -27,7 +27,7 @@ def test_pokemon_initialization(starter):
     assert isinstance(starter.evolution_state, BaseEvolutionState)
 
 def test_is_fainted_logic(starter):
-    """Test if Pokémon correctly detects fainting."""
+    """Test if Pokemon correctly detects fainting."""
     starter.current_health = 0
     assert starter.is_fainted()
 
@@ -45,7 +45,7 @@ def test_take_damage_and_observer_notification(starter):
     assert starter.notified == (50, 20)
 
 def test_attack_mechanics(starter):
-    """Test a successful attack on a target Pokémon."""
+    """Test a successful attack on a target Pokemon."""
     target = PokemonFactory.create_pokemon("Bulbasaur")
     result = starter.attack(0, target)
 
@@ -55,7 +55,7 @@ def test_attack_mechanics(starter):
     assert not result["target_fainted"]
 
 def test_attack_when_fainted(starter):
-    """Test that a fainted Pokémon cannot attack."""
+    """Test that a fainted Pokemon cannot attack."""
     starter.current_health = 0
     target = PokemonFactory.create_pokemon("Bulbasaur")
     result = starter.attack(0, target)
@@ -74,14 +74,14 @@ def test_level_up_and_evolution(starter):
     assert isinstance(evolved.evolution_state, SecondEvolutionState)
 
 def test_final_evolution_does_not_evolve(final):
-    """Ensure final evolution Pokémon does not evolve."""
+    """Ensure final evolution Pokemon does not evolve."""
     final.xp = 999
     final.level = 99
     result = final.level_up_check()
     assert result is None
 
 def test_to_list_and_from_list_roundtrip(starter):
-    """Test Pokémon can be serialized and restored properly."""
+    """Test Pokemon can be serialized and restored properly."""
     data = starter.to_list()
     restored = Pokemon.from_list(data)
 
@@ -98,14 +98,14 @@ def test_to_list_and_from_list_roundtrip(starter):
 #====================Test Pokemon Factory========================
 
 def test_create_specific_pokemon():
-    """Test that specific Pokémon can be created from the Pokedex."""
+    """Test that specific Pokemon can be created from the Pokedex."""
     poke = PokemonFactory.create_pokemon("Charizard")
     assert poke.name == "Charizard"
     assert poke.level == 1
     assert isinstance(poke.evolution_state, FinalEvolutionState)
 
 def test_create_starter_pokemon():
-    """Test that all three starter Pokémon are created correctly."""
+    """Test that all three starter Pokemon are created correctly."""
     starters = PokemonFactory.create_starter_pokemon()
     names = [p.name for p in starters]
     assert set(names) == {"Charmander", "Squirtle", "Bulbasaur"}
@@ -120,6 +120,7 @@ def test_create_starter_pokemon():
 #====================Test Type Adavantages========================
 
 def test_type_advantage():
+    """Test the type advantage calculation."""
     assert TypeAdvantageCalculator.calculate_multiplier(PokemonType.FIRE, PokemonType.GRASS, 1) == 1.4
     assert TypeAdvantageCalculator.calculate_multiplier(PokemonType.GRASS, PokemonType.FIRE, 2) == 1.0
     assert TypeAdvantageCalculator.calculate_multiplier(PokemonType.WATER, PokemonType.FIRE, 3) == 2.0
@@ -131,6 +132,7 @@ def test_type_advantage():
 #====================Test Evolution Logics========================
 
 def test_base_evolution_state():
+    """Test the base evolution state."""
     state = BaseEvolutionState()
     assert state.get_evo_level() == 1
     assert state.get_xp_threshold() == GameConstants.BASE_XP_THRESHOLDD
@@ -139,6 +141,7 @@ def test_base_evolution_state():
     assert state.get_next_evolution("Charmander") == "Charmeleon"
 
 def test_second_evolution_state():
+    """Test the second evolution state."""
     state = SecondEvolutionState()
     assert state.get_evo_level() == 2
     assert state.get_xp_threshold() == GameConstants.SECOND_XP_THRESHOLD
@@ -147,6 +150,7 @@ def test_second_evolution_state():
     assert state.get_next_evolution("Charmeleon") == "Charizard"
 
 def test_final_evolution_state():
+    """Test the final evolution state."""
     state = FinalEvolutionState()
     assert state.get_evo_level() == 3
     assert state.get_next_evolution("Charizard") is None
