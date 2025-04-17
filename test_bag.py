@@ -32,7 +32,7 @@ def dummy_pokemon():
 #=============== Unit Tests ===============#
 
 def test_potion_compartment_add_and_remove():
-    """Test adding and removing various potions from the compartment."""
+    """Test adding and removing various potions from compartment."""
     potions = PotionCompartment()
     potions.add(SmallPotion())
     potions.add(MediumPotion())
@@ -118,7 +118,7 @@ def test_pokeball_compartment_list_items():
     assert result == ["Ultraball x3"]
 
 def test_pokemon_roster_remove(dummy_pokemon):
-    """Test removing Pokemon from the roster by index, including out-of-bounds."""
+    """Test removing Pokemon from roster by index, including out-of-bounds."""
     roster = PokemonRoster()
     ball = RegularPokeball()
     roster.stored_pokemon.append(ball)
@@ -127,7 +127,7 @@ def test_pokemon_roster_remove(dummy_pokemon):
     assert roster.remove(99) is None
 
 def test_pokemon_roster_full(dummy_pokemon):
-    """Test that the roster correctly identifies being full and rejects extra entries."""
+    """Test that roster correctly identifies being full and rejects extra entries."""
     roster = PokemonRoster()
     for _ in range(roster.MAX_CAPACITY):
         b = RegularPokeball()
@@ -167,18 +167,18 @@ def test_potion_compartment_from_dict():
     assert pc._counts["medium"] == 2
 
 def test_pokeball_compartment_from_dict():
-    """Test restoring pokeball counts from a dictionary."""
+    """Test restoring pokeball counts from dictionary."""
     pb = PokeballCompartment()
     pb.from_dict({"pokeball": 1, "greatball": 2})
     assert pb._counts["greatball"] == 2
     
 def test_remove_nonexistent_item_returns_none():
-    """Removing an item that doesn't exist should return None."""
+    """Removing item that doesn't exist should return None."""
     pc = PotionCompartment()
     assert pc.remove("nonexistent") is None
 
 def test_get_item_key_invalid_raises():
-    """Passing an unsupported item should raise ValueError."""
+    """Passing unsupported item should raise ValueError."""
     class DummyItem(Item):
         def get_name(self): return "Test"
         def get_value(self): return 1

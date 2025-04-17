@@ -19,7 +19,7 @@ class DummyPokemon:
         return self.current_health == 0
 
 def test_small_potion_use():
-    """SmallPotion should heal a non-fainted Pokemon."""
+    """SmallPotion should heal non-fainted Pokemon."""
     potion = SmallPotion()
     pokemon = DummyPokemon(current_hp=30, max_hp=50)
     result = potion.use(pokemon)
@@ -27,14 +27,14 @@ def test_small_potion_use():
     assert pokemon.current_health == 40
 
 def test_small_potion_full_health():
-    """Using a potion on a fuly healed Pokemon should fail."""
+    """Using a potion on fuly healed Pokemon should fail."""
     potion = SmallPotion()
     pokemon = DummyPokemon(current_hp=50, max_hp=50)
     result = potion.use(pokemon)
     assert result is False
 
 def test_small_potion_on_fainted():
-    """Potion should not heal a fainted Pokemon."""
+    """Potion should not heal fainted Pokemon."""
     potion = SmallPotion()
     pokemon = DummyPokemon(current_hp=0, max_hp=50)
     result = potion.use(pokemon)

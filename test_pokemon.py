@@ -98,7 +98,7 @@ def test_to_list_and_from_list_roundtrip(starter):
 #====================Test Pokemon Factory========================
 
 def test_create_specific_pokemon():
-    """Test that specific Pokemon can be created from the Pokedex."""
+    """Test that specific Pokemon can be created from pokedex."""
     poke = PokemonFactory.create_pokemon("Charizard")
     assert poke.name == "Charizard"
     assert poke.level == 1
@@ -120,7 +120,7 @@ def test_create_starter_pokemon():
 #====================Test Type Adavantages========================
 
 def test_type_advantage():
-    """Test the type advantage calculation."""
+    """Test type advantage calculation."""
     assert TypeAdvantageCalculator.calculate_multiplier(PokemonType.FIRE, PokemonType.GRASS, 1) == 1.4
     assert TypeAdvantageCalculator.calculate_multiplier(PokemonType.GRASS, PokemonType.FIRE, 2) == 1.0
     assert TypeAdvantageCalculator.calculate_multiplier(PokemonType.WATER, PokemonType.FIRE, 3) == 2.0
@@ -132,7 +132,7 @@ def test_type_advantage():
 #====================Test Evolution Logics========================
 
 def test_base_evolution_state():
-    """Test the base evolution state."""
+    """Test base evolution state."""
     state = BaseEvolutionState()
     assert state.get_evo_level() == 1
     assert state.get_xp_threshold() == GameConstants.BASE_XP_THRESHOLDD
@@ -141,7 +141,7 @@ def test_base_evolution_state():
     assert state.get_next_evolution("Charmander") == "Charmeleon"
 
 def test_second_evolution_state():
-    """Test the second evolution state."""
+    """Test second evolution state."""
     state = SecondEvolutionState()
     assert state.get_evo_level() == 2
     assert state.get_xp_threshold() == GameConstants.SECOND_XP_THRESHOLD
@@ -150,7 +150,7 @@ def test_second_evolution_state():
     assert state.get_next_evolution("Charmeleon") == "Charizard"
 
 def test_final_evolution_state():
-    """Test the final evolution state."""
+    """Test final evolution state."""
     state = FinalEvolutionState()
     assert state.get_evo_level() == 3
     assert state.get_next_evolution("Charizard") is None
