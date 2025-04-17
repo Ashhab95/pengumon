@@ -417,7 +417,7 @@ class PokemonBattleManager:
     def _handle_enemy_turn(self):
         """Let the enemy Pokémon take its turn using AI to choose actions."""
         messages = []
-        ai_level = self.__player.get_state("enemy_ai", "medium")  # stored as a string
+        ai_level = self.__player.get_state("enemy_ai", "medium")  # midium is defaulted if not set
         if ai_level == "easy":
             ai = EasyAI()
         elif ai_level == "hard":
