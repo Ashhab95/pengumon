@@ -112,7 +112,7 @@ class PotionCompartment(ItemCompartment):
 
 
 class PokeballCompartment(ItemCompartment):
-    """Holds and manages different types of empty Pokéballs."""
+    """Holds and manages different types of empty Pokeballs."""
     def __init__(self):
         super().__init__("Empty Pokeballs")
         self._counts = {"pokeball": 0, "greatball": 0, "ultraball": 0, "masterball": 0}
@@ -147,14 +147,14 @@ class PokeballCompartment(ItemCompartment):
 
 class PokemonRoster:
     class PokemonRoster:
-     """Handles the storage and switching of the player's captured Pokémon."""
+     """Handles the storage and switching of the player's captured Pokemon."""
     MAX_CAPACITY = 5 # 5 in the roster in pokeballs + user gets one active pokemon
 
     def __init__(self):
         self.stored_pokemon: List[Pokeball] = []
 
     def add(self, pokeball: Pokeball) -> bool:
-        """ Add a captured Pokémon to the compartment."""
+        """ Add a captured Pokemon to the compartment."""
         if pokeball.is_empty():
             return False # empty Pokeball cannot be added to this compartment
         
@@ -169,14 +169,14 @@ class PokemonRoster:
         return len(self.stored_pokemon) >= self.MAX_CAPACITY
 
     def remove(self, index: int) -> Optional[Pokeball]:
-        """Remove a Pokémon from the compartment by index."""
+        """Remove a Pokemon from the compartment by index."""
         if 0 <= index < len(self.stored_pokemon):
             return self.stored_pokemon.pop(index)
         return None # if index is out of range
     
     def list_pokemon(self) -> List[Tuple[int, str]]:
         """
-        List all stored Pokémon in the compartment along with their attributes.
+        List all stored Pokemon in the compartment along with their attributes.
 
         Returns:
             A list of tuples where each tuple contains:
@@ -200,8 +200,8 @@ class PokemonRoster:
     def get_available_pokemon(self) -> Optional[List[Tuple[int, Pokeball]]]:
         """
         Returns:
-            A list of tuples (index, Pokéball) where each Pokéball contains a
-            non-fainted Pokémon, or None if there are no available Pokémon.
+            A list of tuples (index, Pokeball) where each Pokeball contains a
+            non-fainted Pokemon, or None if there are no available Pokemon.
         """
         available = []
 
@@ -213,10 +213,10 @@ class PokemonRoster:
     
     def switch_pokemon(self, pokemon: Pokemon, index: int) -> Optional[Pokemon]:
         """
-        Swap the given Pokémon with the Pokémon in Pokéball at specified index.
+        Swap the given Pokemon with the Pokemon in Pokeball at specified index.
 
         Returns:
-            Pokémon that was previously stored at that index,
+            Pokemon that was previously stored at that index,
             or None if the index is invalid.
         """
         if 0 <= index < len(self.stored_pokemon):
@@ -236,7 +236,7 @@ class PokemonRoster:
 
 
 class Bag:
-    """Main inventory class that stores potions, Pokéballs, and captured Pokémon."""
+    """Main inventory class that stores potions, Pokeballs, and captured Pokemon."""
     def __init__(self):
         self.potions = PotionCompartment()
         self.pokeballs = PokeballCompartment()

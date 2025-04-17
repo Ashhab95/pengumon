@@ -38,14 +38,13 @@ class PokemonHouse(Map):
         )
         
     def _get_keybinds(self):
+        """Override the _get_keybinds method to add custom keybinds."""
         keybinds = super()._get_keybinds()
         keybinds.update(get_keybinds(self))
         return keybinds
     
     def _add_trees(self, objects, start_pos, end_pos, step=1, tree_type="tree_lar", direction="horizontal"):
-        """
-        Helper method to add trees to the map.
-        """
+        """Helper method to add trees to the map."""
         i_start, j_start = start_pos
         i_end, j_end = end_pos
 

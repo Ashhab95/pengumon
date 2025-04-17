@@ -4,7 +4,7 @@ from .pokeball import Pokeball, RegularPokeball, GreatBall, UltraBall, MasterBal
 
 class DummyPokemon:
     """A minimal Pokemon class for testing purposes."""
-    def __init__(self, name="Dummy", current_health=20, max_health=50, level=5, p_type="FIRE"):
+    def __init__(self, name="Dummy", current_health=20, max_health=50, level=3, p_type="FIRE"):
         self.name = name
         self.current_health = current_health
         self.max_health = max_health
