@@ -36,11 +36,17 @@ You can find it under classdiagram.png
 
 ---
 
+## MAP
+
+- Located in myhouse.py
+
+---
+
 ## SPECIAL KEYBINDS
 
 - `b` — View bag contents
 - `h` — Get a random hint about the game
-- `v` — View your current active Pokémon
+- `v` — View your active Pokémon and its stats
 - `s` — Switch your active Pokémon
 
 ---
@@ -80,8 +86,9 @@ You can find it under classdiagram.png
 
 - Pokémon gain XP by defeating enemy Pokémon. (catching them won't give you XP)
 - You can also catch enemy Pokémon using a Pokeball.
-  - Pokeball will not always work. (e.g. the opponent needs to be low health)
+  - Using a Pokeball will not always catch enemy Pokémon. (e.g. the opponent needs to be low health)
   - Some Pokeballs have a greater chance of catching than others.
+  - If you fail to catch the Pokémon, you still lose the Pokeball, so make sure it's at low health!!!
 - Pokémon level up and evolve once specific thresholds are reached.
 
 ### Healing & Recovery
