@@ -86,6 +86,7 @@ You can find it under classdiagram.png
 ### Progression
 
 - Pokémon gain XP by defeating enemy Pokémon. (catching them won't give you XP)
+  - XP gained from defeating enemy Pokémom scales with enemy evolution.
 - You can also catch enemy Pokémon using a Pokeball.
   - Using a Pokeball will not always catch enemy Pokémon. (e.g. the opponent needs to be low health)
   - Some Pokeballs have a greater chance of catching than others.
