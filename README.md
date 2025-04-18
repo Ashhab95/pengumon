@@ -20,13 +20,14 @@ pytest test_enemyAI.py
 
 ## RUNNING
 
-If the game crashes, you may not have the required version of `303MUD`. To fix this, `cd` into the `303MUD` directory and run:
+If the game crashes, it may be due to an outdated version of `303MUD`. To ensure compatibility, navigate to the `303MUD` directory and run:
 
 ```bash
 git pull upstream main
 ```
 
-This should ensure compatibility and allow the game to run correctly.
+Note: We found that origin/main was too far behind for much of the time we were coding. 
+This fix should ensure compatibility and allow the game to run correctly. 
 
 ---
 
