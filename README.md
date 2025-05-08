@@ -96,4 +96,20 @@ You can find it under classdiagram.png
 ### Healing & Recovery
 
 - The **Pokémon Center** is a healing station where all your Pokémon are fully restored.
-- To heal all your Pokemon, simply go to the **Pokemon Center** and talk with Nurse Joy. 
+- To heal all your Pokemon, simply go to the **Pokemon Center** and talk with Nurse Joy.
+
+---
+## Screenshots
+
+<p float="left">
+  <img src="stock%20images/test-1.png" width="300" />
+  <img src="stock%20images/test-2.png" width="300" />
+  <img src="stock%20images/test-3.png" width="300" />
+</p>
+
+<p float="left">
+  <img src="stock%20images/test-4.png" width="300" />
+  <img src="stock%20images/test-5.png" width="300" />
+</p>
+
+
