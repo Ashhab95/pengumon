@@ -110,6 +110,8 @@ You can find it under classdiagram.png
 <p float="left">
   <img src="stock%20images/test-4.png" width="300" />
   <img src="stock%20images/test-5.png" width="300" />
+  <img src="stock%20images/test-6.png" width="300" />
+  <img src="stock%20images/test-7.png" width="300" />
 </p>
 
 
