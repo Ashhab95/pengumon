@@ -102,17 +102,17 @@ You can find it under classdiagram.png
 ## 📸 Screenshots
 
 ### 🌳 Game Map View  
-![Map View](stock-images/test-1.png)
+![Map View](stock%20images/test-1.png)
 
 ### 🏥 Pokémon Center Interaction  
-![Pokémon Center](stock-images/test-2.png)
+![Pokémon Center](stock%20images/test-2.png)
 
 ### ⚔️ Battle System  
-![Battle](stock-images/test-3.png)
+![Battle](stock%20images/test-3.png)
 
 ### 🔄 Starter Pokémon Selection  
-![Choose Starter](stock-images/test-4.png)
+![Choose Starter](stock%20images/test-4.png)
 
 ### 🎮 Pressure Plate & Movement  
-![Pressure Plate](stock-images/test-5.png)
+![Pressure Plate](stock%20images/test-5.png)
 
