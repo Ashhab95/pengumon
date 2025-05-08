@@ -33,14 +33,14 @@ def message_buffer():
     return []
 
 def test_battle_message_notifier_damage(dummy_player, dummy_pokemon, message_buffer):
-    """Test that damage triggers a message."""
+    """Test that damage triggers message."""
     observer = BattleMessageNotifier(dummy_player, message_buffer)
     observer.on_health_changed(dummy_pokemon, 100, 75)
     assert len(message_buffer) == 1
     assert "took damage" in message_buffer[0]._get_data()["text"]
 
 def test_battle_message_notifier_heal(dummy_player, dummy_pokemon, message_buffer):
-    """Test that healing triggers a message."""
+    """Test that healing triggers message."""
     observer = BattleMessageNotifier(dummy_player, message_buffer)
     observer.on_health_changed(dummy_pokemon, 40, 60)
     assert len(message_buffer) == 1

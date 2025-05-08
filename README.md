@@ -10,7 +10,7 @@ pytest
 This will automatically discover and run all test files (`test_*.py`) inside the `pengumon/` directory.
 All tests use `pytest` and are designed to be self-contained and reproducible.
 
-To run tests for a specific module (e.g., `enemyAI`), use:
+To run tests for a specific module (e.g. `enemyAI`), use:
 
 ```bash
 pytest test_enemyAI.py
@@ -20,13 +20,26 @@ pytest test_enemyAI.py
 
 ## RUNNING
 
-If the game crashes, you may not have the required version of `303MUD`. To fix this, `cd` into the `303MUD` directory and run:
+If the game crashes, it may be due to an outdated version of `303MUD`. To ensure compatibility, navigate to the `303MUD` directory and run:
 
 ```bash
 git pull upstream main
 ```
 
-This should ensure compatibility and allow the game to run correctly.
+Note: We found that origin/main was too far behind for much of the time we were coding. 
+This fix should ensure compatibility and allow the game to run correctly. 
+
+---
+
+## CLASS DIAGRAM
+
+You can find it under classdiagram.png
+
+---
+
+## MAP
+
+- Located in myhouse.py
 
 ---
 
@@ -34,7 +47,7 @@ This should ensure compatibility and allow the game to run correctly.
 
 - `b` — View bag contents
 - `h` — Get a random hint about the game
-- `v` — View your current active Pokémon
+- `v` — View your active Pokémon and its stats
 - `s` — Switch your active Pokémon
 
 ---
@@ -52,19 +65,19 @@ This should ensure compatibility and allow the game to run correctly.
 
 - Turn-based: You and your opponent AI alternate actions each round.
 - Player actions include:
-  - Attacking (uses one of four preset moves per Pokémon)
-  - Using an item (e.g., health or revive potions)
-  - Switching Pokémon (uses a turn unless a special item is used)
-  - Attempting to catch wild Pokémon
+  - Attacking (uses one of 2 ~ 4 preset moves per Pokémon)
+  - Using an item (e.g. health potions or Pokeballs)
+  - Run (running away from the fight, you fail to run away 30% of the time)
+  - Dodging (gives you a 50% chance to dodge next enemy turn attack)
+  - Switching Pokémon (uses a turn)
 - You win when you defeat the opponent AI pokemon, or catch them
 
 ### Enemy AI
 
 - Makes decisions based on difficulty level and predefined strategies.
 
-### Battle Flow
+### Type Advantages
 
-- Health bars are updated after each move using observer logic.
 - Type effectiveness applies:
   - Fire > Grass
   - Grass > Water
@@ -72,8 +85,13 @@ This should ensure compatibility and allow the game to run correctly.
 
 ### Progression
 
-- Pokémon gain XP from battles.
-- They level up and evolve once specific thresholds are reached.
+- Pokémon gain XP by defeating enemy Pokémon. (catching them won't give you XP)
+  - XP gained from defeating enemy Pokémom scales with enemy evolution.
+- You can also catch enemy Pokémon using a Pokeball.
+  - Using a Pokeball will not always catch enemy Pokémon. (e.g. the opponent needs to be low health)
+  - Some Pokeballs have a greater chance of catching than others.
+  - If you fail to catch the Pokémon, you still lose the Pokeball, so make sure it's at low health!!!
+- Pokémon level up and evolve once specific thresholds are reached.
 
 ### Healing & Recovery
 
