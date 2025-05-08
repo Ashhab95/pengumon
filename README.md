@@ -99,20 +99,17 @@ You can find it under classdiagram.png
 - To heal all your Pokemon, simply go to the **Pokemon Center** and talk with Nurse Joy.
 
 ---
-## 📸 Screenshots
+## Screenshots
 
-### 🌳 Game Map View  
-![Map View](stock%20images/test-1.png)
+<p float="left">
+  <img src="stock%20images/test-1.png" width="300" />
+  <img src="stock%20images/test-2.png" width="300" />
+  <img src="stock%20images/test-3.png" width="300" />
+</p>
 
-### 🏥 Pokémon Center Interaction  
-![Pokémon Center](stock%20images/test-2.png)
+<p float="left">
+  <img src="stock%20images/test-4.png" width="300" />
+  <img src="stock%20images/test-5.png" width="300" />
+</p>
 
-### ⚔️ Battle System  
-![Battle](stock%20images/test-3.png)
-
-### 🔄 Starter Pokémon Selection  
-![Choose Starter](stock%20images/test-4.png)
-
-### 🎮 Pressure Plate & Movement  
-![Pressure Plate](stock%20images/test-5.png)
 
